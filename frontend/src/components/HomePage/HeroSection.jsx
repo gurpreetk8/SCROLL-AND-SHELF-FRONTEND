@@ -29,7 +29,7 @@ const HeroSection = () => {
               <div className="mb-4 flex items-center space-x-3">
                 <div className="h-px w-16 bg-gray-900" />
                 <span className="text-sm font-medium tracking-widest text-gray-600">
-                  PREMIUM EBOOKS
+                  FOR THOSE WHO
                 </span>
               </div>
               
@@ -39,12 +39,12 @@ const HeroSection = () => {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.3, duration: 0.8 }}
               >
-                <span className="font-serif italic">Curated</span> literature for{" "}
+                <span className="font-serif italic">LIVE</span> a thousand lives{" "}
                 <span className="relative inline-block">
-                  <span className="relative z-10">discerning</span>
+                  <span className="relative z-10">through</span>
                   <span className="absolute bottom-2 left-0 z-0 h-3 w-full bg-amber-100/60" />
                 </span>{" "}
-                readers
+                pages...
               </motion.h1>
 
               <motion.p
@@ -53,7 +53,7 @@ const HeroSection = () => {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.6, duration: 0.8 }}
               >
-                Discover rare editions and timeless classics in our exclusive digital collection.
+                SCROLL IT, LOVE IT, SHELF IT.
               </motion.p>
             </motion.div>
 
