@@ -24,7 +24,7 @@ const CategoryEbooks = () => {
         formData.append('id', categoryId);
         
         const response = await axios.post(
-          'http://127.0.0.1:8000/ebooks/ebooks_by_category/',
+          'https://scrollandshelf.pythonanywhere.com/ebooks/ebooks_by_category/',
           formData
         );
 
@@ -106,7 +106,7 @@ const CategoryEbooks = () => {
                 <div className="relative h-96 overflow-hidden bg-gray-50 rounded-xl shadow-sm hover:shadow-md transition-all">
                   {/* Book Cover */}
                   <img
-                    src={`http://127.0.0.1:8000/${ebook.cover_image}`}
+                    src={`https://scrollandshelf.pythonanywhere.com/${ebook.cover_image}`}
                     alt={ebook.title}
                     className="w-full h-full object-cover transform transition-transform duration-500 group-hover:scale-105"
                   />

@@ -15,7 +15,7 @@ const Categories = () => {
     useEffect(() => {
         const fetchCategories = async () => {
             try {
-                const response = await axios.post('http://127.0.0.1:8000/ebooks/all_categories/');
+                const response = await axios.post('https://scrollandshelf.pythonanywhere.com/ebooks/all_categories/');
                 if (response.data.success) {
                     setCategories(response.data.categories);
                 } else {
@@ -88,7 +88,7 @@ const Categories = () => {
                                 {/* Category Image */}
                                 <div className="relative h-3/4 overflow-hidden">
                                     <img
-                                        src={`http://127.0.0.1:8000/${category.image}`}
+                                        src={`https://scrollandshelf.pythonanywhere.com/${category.image}`}
                                         alt={category.name}
                                         className="w-full h-full object-cover transform transition-transform duration-500 group-hover:scale-110"
                                     />

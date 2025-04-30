@@ -6,7 +6,7 @@ import { Mail, Lock, User, Phone, BookOpen } from 'lucide-react';
 import Navbar from '../components/HomePage/Navbar';
 import Footer from '../components/HomePage/Footer';
 
-const BASE_URL = "http://127.0.0.1:8000/";
+const BASE_URL = "https://scrollandshelf.pythonanywhere.com/";
 
 const LoginRegister = () => {
   const navigate = useNavigate();

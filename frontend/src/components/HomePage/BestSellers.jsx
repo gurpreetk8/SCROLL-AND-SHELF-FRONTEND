@@ -13,7 +13,7 @@ const BestSellers = () => {
   useEffect(() => {
     const fetchBestSellers = async () => {
       try {
-        const response = await axios.post('http://127.0.0.1:8000/ebooks/best_sellers/');
+        const response = await axios.post('https://scrollandshelf.pythonanywhere.com/ebooks/best_sellers/');
         if (response.data.success) {
           setEbooks(response.data.ebooks);
         } else {
@@ -83,7 +83,7 @@ const BestSellers = () => {
               {/* Book Cover */}
               <div className="relative h-80 overflow-hidden bg-gray-50">
                 <img 
-                  src={`http://127.0.0.1:8000/${ebook.cover_image}`} 
+                  src={`https://scrollandshelf.pythonanywhere.com/${ebook.cover_image}`} 
                   alt={ebook.title}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />

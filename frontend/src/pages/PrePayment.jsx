@@ -43,7 +43,7 @@ const PrePayment = () => {
 
                 // Step 1: Create pre-booking
                 const preBookResponse = await axios.post(
-                    'http://127.0.0.1:8000/subscriptions/pre_book_subscription/',
+                    'https://scrollandshelf.pythonanywhere.com/subscriptions/pre_book_subscription/',
                     {},
                     {
                         headers: {
@@ -73,7 +73,7 @@ const PrePayment = () => {
         try {
             setLoading(true);
             const orderResponse = await axios.post(
-                'http://127.0.0.1:8000/payments/create_order/',
+                'https://scrollandshelf.pythonanywhere.com/payments/create_order/',
                 {
                     subscription_id: subscriptionId,
                     amount: amount,
@@ -100,7 +100,7 @@ const PrePayment = () => {
                 handler: async (response) => {
                     try {
                         const verificationResponse = await axios.post(
-                            'http://127.0.0.1:8000/payments/verify_order/',
+                            'https://scrollandshelf.pythonanywhere.com/payments/verify_order/',
                             {
                                 razorpay_payment_id: response.razorpay_payment_id,
                                 razorpay_order_id: response.razorpay_order_id,

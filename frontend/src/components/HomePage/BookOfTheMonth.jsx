@@ -13,7 +13,7 @@ const BookOfTheMonth = () => {
   useEffect(() => {
     const fetchBookOfMonth = async () => {
       try {
-        const response = await axios.post('http://127.0.0.1:8000/ebooks/best_of_month_book/');
+        const response = await axios.post('https://scrollandshelf.pythonanywhere.com/ebooks/best_of_month_book/');
         if (response.data.success) {
           setEbook(response.data.ebook);
         } else {
@@ -74,7 +74,7 @@ const BookOfTheMonth = () => {
               className="relative h-[500px] overflow-hidden bg-gray-100"
             >
               <img
-                src={`http://127.0.0.1:8000/${ebook.cover_image}`}
+                src={`https://scrollandshelf.pythonanywhere.com/${ebook.cover_image}`}
                 alt={ebook.title}
                 className="w-full h-full object-cover transform transition-transform duration-500 hover:scale-105"
               />
@@ -116,7 +116,7 @@ const BookOfTheMonth = () => {
                     className="relative h-32 overflow-hidden bg-gray-200 cursor-pointer"
                   >
                     <img
-                      src={`http://127.0.0.1:8000/${image}`}
+                      src={`https://scrollandshelf.pythonanywhere.com/${image}`}
                       alt={`Sample ${index + 1}`}
                       className="w-full h-full object-cover"
                     />

@@ -25,7 +25,7 @@ const EbookDetail = () => {
                 formData.append('id', ebookId);
 
                 const response = await axios.post(
-                    'http://127.0.0.1:8000/ebooks/ebook_detail/',
+                    'https://scrollandshelf.pythonanywhere.com/ebooks/ebook_detail/',
                     formData,
                     {
                         headers: {
@@ -38,7 +38,7 @@ const EbookDetail = () => {
                     setEbook(response.data.ebook);
                     // Fetch latest ebooks
                     const latestRes = await axios.post(
-                        'http://127.0.0.1:8000/ebooks/latest_ebooks/',
+                        'https://scrollandshelf.pythonanywhere.com/ebooks/latest_ebooks/',
                         null,
                         {
                             headers: {
@@ -101,7 +101,7 @@ const EbookDetail = () => {
                         >
                             <div className="relative h-[600px] w-full bg-gray-100 rounded-2xl shadow-xl overflow-hidden">
                                 <img
-                                    src={`http://127.0.0.1:8000/${ebook.cover_image}`}
+                                    src={`https://scrollandshelf.pythonanywhere.com/${ebook.cover_image}`}
                                     alt={ebook.title}
                                     className="w-full h-full object-cover transform transition-transform duration-500 group-hover:scale-105"
                                 />
@@ -140,7 +140,7 @@ const EbookDetail = () => {
                                 {ebook.file_url ? (
                                     <motion.a
                                         whileHover={{ scale: 1.05 }}
-                                        href={`http://127.0.0.1:8000/${ebook.file_url}`}
+                                        href={`https://scrollandshelf.pythonanywhere.com/${ebook.file_url}`}
                                         className="flex items-center bg-gray-900 text-white px-8 py-3 rounded-lg hover:bg-gray-800"
                                     >
                                         <Download className="h-5 w-5 mr-2" />
@@ -180,7 +180,7 @@ const EbookDetail = () => {
                                 className="flex-shrink-0 relative w-64 h-96 bg-gray-100 rounded-xl overflow-hidden cursor-pointer"
                             >
                                 <img
-                                    src={`http://127.0.0.1:8000/${image}`}
+                                    src={`https://scrollandshelf.pythonanywhere.com/${image}`}
                                     alt={`Sample ${index + 1}`}
                                     className="w-full h-full object-cover"
                                 />
@@ -205,7 +205,7 @@ const EbookDetail = () => {
                             >
                                 <div className="relative h-64 bg-gray-100 rounded-t-xl overflow-hidden">
                                     <img
-                                        src={`http://127.0.0.1:8000/${ebook.cover_image}`}
+                                        src={`https://scrollandshelf.pythonanywhere.com/${ebook.cover_image}`}
                                         alt={ebook.title}
                                         className="w-full h-full object-cover"
                                     />
