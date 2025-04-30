@@ -1,0 +1,33 @@
+@import url('https://fonts.googleapis.com/css2?family=Dancing+Script&family=Merriweather&family=Playfair+Display&family=Poppins&display=swap');
+
+.page-container {
+  display: flex;
+  height: 100vh;
+  background-color: #111;
+  color: white;
+}
+
+.carousel-section {
+  width: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: left;
+  padding: 20px;
+}
+
+.logo-section {
+  width: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.main-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 30px; /* Space between carousel and member perks */
+  height: 55vh;
+  padding: 20px;
+}
