@@ -73,98 +73,167 @@ const EbookDetail = () => {
     fetchLatestEbooks();
   }, [ebookId]);
 
-  if (loading) return <div className="p-6 text-lg">Loading...</div>;
-  if (error) return <div className="p-6 text-red-500">{error}</div>;
+  if (loading) return (
+    <div className="flex justify-center items-center h-screen">
+        <div className="animate-pulse text-gray-500">Loading book details...</div>
+    </div>
+  );
+
+  if (error) return (
+    <div className="text-center text-red-500 p-8">
+        Error: {error}  
+    </div>
+  );
+
   if (!ebook) return null;
 
   return (
-    <div>
+    <div className="min-h-screen bg-white">
       <Navbar />
-    <div className="p-6 md:flex gap-10">
       
-      <motion.div
-        className="md:w-1/2 mb-6 md:mb-0"
-        initial={{ opacity: 0, x: -30 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.6 }}
+      {/* Book Header */}
+      <motion.header
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="bg-gradient-to-b from-gray-50 to-white"
       >
-        <img
-          src={ebook.cover_image}
-          alt={ebook.title}
-          className="w-full h-auto rounded-lg shadow-md"
-        />
-      </motion.div>
-
-      <motion.div
-        className="md:w-1/2"
-        initial={{ opacity: 0, x: 30 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.6 }}
-      >
-        <h1 className="text-3xl font-bold mb-3">{ebook.title}</h1>
-        <p className="text-gray-600 mb-1">
-          <span className="font-semibold">Author:</span> {ebook.author}
-        </p>
-        <p className="text-gray-600 mb-1">
-          <span className="font-semibold">Category:</span> {ebook.category}
-        </p>
-        <p className="text-gray-600 mb-3">
-          <span className="font-semibold">Uploaded on:</span>{' '}
-          {new Date(ebook.uploaded_at).toLocaleDateString()}
-        </p>
-        <p className="text-gray-800 mb-5">{ebook.description}</p>
-
-        {ebook.file_url && (
-          <a
-            href={ebook.file_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block bg-blue-600 text-white px-5 py-2 rounded hover:bg-blue-700 transition"
+        <div className="max-w-7xl mx-auto px-6 py-12">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center text-gray-600 hover:text-gray-900 mb-8"
           >
-            Read Full Book
-          </a>
-        )}
-      </motion.div>
+            <ArrowLeft className="h-5 w-5 mr-2" />
+            Back to Collection
+          </button>
 
-      {ebook.preview_images?.length > 0 && (
-        <div className="mt-10">
-          <h2 className="text-2xl font-semibold mb-4">Preview</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-            {ebook.preview_images.map((img, index) => (
-              <img
+          <div className="grid lg:grid-cols-2 gap-16">
+            {/* Book Cover */}
+            <motion.div
+              initial={{ x: -50, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              className="relative group"
+            >
+              <div className="relative h-[600px] w-full bg-gray-100 rounded-2xl shadow-xl overflow-hidden">
+                <img
+                  src={`https://scrollandshelf.pythonanywhere.com/${ebook.cover_image}`}
+                  alt={ebook.title}
+                  className="w-full h-full object-cover transform transition-transform duration-500 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+              </div>
+            </motion.div>
+
+            {/* Book Details */}
+            <motion.div
+              initial={{ x: 50, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              className="flex flex-col justify-center"
+            >
+              <div className="mb-6">
+                <h1 className="text-4xl font-serif italic text-gray-900 mb-4">{ebook.title}</h1>
+                <p className="text-2xl font-light text-gray-600">by {ebook.author}</p>
+              </div>
+
+              <div className="flex items-center space-x-4 mb-8">
+                <div className="flex items-center text-amber-400">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="h-5 w-5 fill-current" />
+                  ))}
+                </div>
+                <span className="text-gray-600">(4.8/5 from 1.2k reviews)</span>
+              </div>
+
+              <p className="text-lg font-light text-gray-600 leading-relaxed mb-8">
+                {ebook.description}
+              </p>
+
+              {/* Action Buttons */}
+              <div className="flex items-center space-x-4">
+                {ebook.file_url ? (
+                  <motion.a
+                    whileHover={{ scale: 1.05 }}
+                    href={`https://scrollandshelf.pythonanywhere.com/${ebook.file_url}`}
+                    className="flex items-center bg-gray-900 text-white px-8 py-3 rounded-lg hover:bg-gray-800"
+                  >
+                    <Download className="h-5 w-5 mr-2" />
+                    Download Now
+                  </motion.a>
+                ) : (
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    className="flex items-center bg-gradient-to-r from-amber-500 to-amber-600 text-white px-8 py-3 rounded-lg hover:from-amber-600 hover:to-amber-700"
+                    onClick={() => navigate('/subscribe')}
+                  >
+                    <BookOpen className="h-5 w-5 mr-2" />
+                    Subscribe to Access
+                  </motion.button>
+                )}
+                <button className="p-3 rounded-full border border-gray-200 hover:border-gray-300">
+                  <Bookmark className="h-5 w-5 text-gray-600" />
+                </button>
+                <button className="p-3 rounded-full border border-gray-200 hover:border-gray-300">
+                  <Share2 className="h-5 w-5 text-gray-600" />
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </motion.header>
+
+      {/* Sample Images Gallery */}
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-6">
+          <h2 className="text-2xl font-medium text-gray-900 mb-8">Preview Pages</h2>
+          <div className="flex overflow-x-auto pb-6 space-x-4 scrollbar-hide">
+            {ebook.sample_images.map((image, index) => (
+              <motion.div
                 key={index}
-                src={img}
-                alt={`Preview ${index + 1}`}
-                className="w-full h-auto rounded shadow"
-              />
+                whileHover={{ scale: 1.02 }}
+                className="flex-shrink-0 relative w-64 h-96 bg-gray-100 rounded-xl overflow-hidden cursor-pointer"
+              >
+                <img
+                  src={`https://scrollandshelf.pythonanywhere.com/${image}`}
+                  alt={`Sample ${index + 1}`}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+              </motion.div>
             ))}
           </div>
         </div>
-      )}
+      </section>
 
-      <div className="mt-10">
-        <h2 className="text-2xl font-semibold mb-4">Latest Ebooks</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-          {latestEbooks.map((book) => (
-            <div
-              key={book.id}
-              className="bg-white shadow-md rounded p-2 hover:shadow-lg transition"
-            >
-              <img
-                src={book.cover_image}
-                alt={book.title}
-                className="w-full h-40 object-cover rounded"
-              />
-              <p className="mt-2 text-sm font-medium text-gray-800">{book.title}</p>
-            </div>
-          ))}
+      {/* Latest Ebooks */}
+      <section className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-6">
+          <h2 className="text-2xl font-medium text-gray-900 mb-8">Latest Additions</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {latestEbooks.map((latest) => (
+              <motion.div
+                key={latest.id}
+                whileHover={{ y: -5 }}
+                className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all"
+                onClick={() => navigate(`/ebook-detail?id=${latest.id}`)}
+              >
+                <div className="relative h-64 bg-gray-100 rounded-t-xl overflow-hidden">
+                  <img
+                    src={`https://scrollandshelf.pythonanywhere.com/${latest.cover_image}`}
+                    alt={latest.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="p-6">
+                  <h3 className="text-lg font-medium text-gray-900">{latest.title}</h3>
+                  <p className="text-gray-600 mt-2">{latest.author}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
         </div>
-      </div>
-      
+      </section>
+
+      <Footer />
     </div>
-    <Footer />
-    </div>
-    
   );
 };
 
