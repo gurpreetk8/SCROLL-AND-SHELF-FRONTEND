@@ -1,7 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import axios from 'axios';
+import { BookOpen, Download, ArrowLeft, Bookmark, Share2, Star } from 'lucide-react';
+import Footer from '../components/HomePage/Footer';
+import Navbar from '../components/HomePage/Navbar';
+
 
 const EbookDetail = () => {
   const [ebook, setEbook] = useState(null);
@@ -75,6 +79,7 @@ const EbookDetail = () => {
 
   return (
     <div className="p-6 md:flex gap-10">
+      <Navbar />
       <motion.div
         className="md:w-1/2 mb-6 md:mb-0"
         initial={{ opacity: 0, x: -30 }}
@@ -153,7 +158,9 @@ const EbookDetail = () => {
           ))}
         </div>
       </div>
+      <Footer />
     </div>
+    
   );
 };
 
