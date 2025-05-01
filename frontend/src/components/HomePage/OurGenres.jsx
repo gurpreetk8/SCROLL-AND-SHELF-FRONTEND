@@ -134,8 +134,8 @@ const OurGenres = () => {
           </Slider>
         </motion.div>
 
-        {/* View All Button */}
-        {/* <motion.div
+        
+         <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
@@ -148,7 +148,7 @@ const OurGenres = () => {
             View All Genres
             <ArrowRight className="ml-2 h-4 w-4" />
           </button>
-        </motion.div> */}
+        </motion.div> 
       </div>
     </section>
   );
