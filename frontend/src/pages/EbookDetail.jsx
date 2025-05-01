@@ -78,8 +78,10 @@ const EbookDetail = () => {
   if (!ebook) return null;
 
   return (
-    <div className="p-6 md:flex gap-10">
+    <div>
       <Navbar />
+    <div className="p-6 md:flex gap-10">
+      
       <motion.div
         className="md:w-1/2 mb-6 md:mb-0"
         initial={{ opacity: 0, x: -30 }}
@@ -158,7 +160,9 @@ const EbookDetail = () => {
           ))}
         </div>
       </div>
-      <Footer />
+      
+    </div>
+    <Footer />
     </div>
     
   );
