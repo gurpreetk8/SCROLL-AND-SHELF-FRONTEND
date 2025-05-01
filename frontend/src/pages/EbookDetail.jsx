@@ -1,14 +1,25 @@
 import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 
-const EbookDetail = ({ bookId }) => {
+const EbookDetail = () => {
   const [ebook, setEbook] = useState(null);
   const [error, setError] = useState('');
-  
+  const location = useLocation();
+
+  // Extract bookId from query string
+  const queryParams = new URLSearchParams(location.search);
+  const bookId = queryParams.get('id');
+
   useEffect(() => {
     const fetchEbookDetails = async () => {
       const token = localStorage.getItem('token');
       if (!token) {
         setError('You must be logged in to view book details.');
+        return;
+      }
+
+      if (!bookId) {
+        setError('Invalid book ID.');
         return;
       }
 
