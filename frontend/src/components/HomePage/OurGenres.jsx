@@ -33,7 +33,7 @@ const OurGenres = () => {
   }, []);
 
   const handleCategoryClick = (categoryId) => {
-    navigate(`/ebook-category?id=${categoryId}`);
+    navigate(`/category-ebooks?id=${categoryId}`);
   };
 
   const sliderSettings = {
@@ -134,8 +134,7 @@ const OurGenres = () => {
           </Slider>
         </motion.div>
 
-        
-         <motion.div
+        <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}

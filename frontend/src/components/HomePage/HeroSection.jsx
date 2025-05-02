@@ -72,7 +72,7 @@ const HeroSection = () => {
                   <ArrowRight className="h-4 w-4" />
                 </motion.button>
               </Link>
-              <Link to="/membership">
+              <Link to="/subscribe">
                 <motion.button
                   whileHover={{ y: -2 }}
                   className="flex items-center space-x-2 border border-gray-900 px-6 py-3 text-sm font-medium text-gray-900 transition-colors hover:bg-gray-100"
