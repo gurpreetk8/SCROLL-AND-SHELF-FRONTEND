@@ -6,13 +6,12 @@ import { BookOpen, Download, ArrowLeft, Bookmark, Share2, Star } from 'lucide-re
 import Footer from '../components/HomePage/Footer';
 import Navbar from '../components/HomePage/Navbar';
 
-
 const EbookDetail = () => {
   const [ebook, setEbook] = useState(null);
-  const [latestEbooks, setLatestEbooks] = useState([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const location = useLocation();
+  const navigate = useNavigate(); // Added missing navigate declaration
 
   const queryParams = new URLSearchParams(location.search);
   const ebookId = queryParams.get('id');
@@ -56,21 +55,7 @@ const EbookDetail = () => {
       }
     };
 
-    const fetchLatestEbooks = async () => {
-      try {
-        const response = await axios.get(
-          'https://scrollandshelf.pythonanywhere.com/ebooks/latest_ebooks/'
-        );
-        if (response.data.success) {
-          setLatestEbooks(response.data.ebooks);
-        }
-      } catch (err) {
-        console.error('Error fetching latest ebooks:', err);
-      }
-    };
-
     fetchEbookDetails();
-    fetchLatestEbooks();
   }, [ebookId]);
 
   if (loading) return (
@@ -197,35 +182,6 @@ const EbookDetail = () => {
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Latest Ebooks */}
-      <section className="py-16 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-6">
-          <h2 className="text-2xl font-medium text-gray-900 mb-8">Latest Additions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {latestEbooks.map((latest) => (
-              <motion.div
-                key={latest.id}
-                whileHover={{ y: -5 }}
-                className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all"
-                onClick={() => navigate(`/ebook-detail?id=${latest.id}`)}
-              >
-                <div className="relative h-64 bg-gray-100 rounded-t-xl overflow-hidden">
-                  <img
-                    src={`https://scrollandshelf.pythonanywhere.com/${latest.cover_image}`}
-                    alt={latest.title}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="p-6">
-                  <h3 className="text-lg font-medium text-gray-900">{latest.title}</h3>
-                  <p className="text-gray-600 mt-2">{latest.author}</p>
-                </div>
               </motion.div>
             ))}
           </div>
