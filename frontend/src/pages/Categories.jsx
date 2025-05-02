@@ -17,7 +17,16 @@ const Categories = () => {
     useEffect(() => {
         const fetchCategories = async () => {
             try {
-                const response = await axios.post('https://scrollandshelf.pythonanywhere.com/ebooks/all_categories/');
+                const response = await axios.post(
+                    'https://scrollandshelf.pythonanywhere.com/ebooks/all_categories/',
+                    {}, // empty body
+                    {
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                    }
+                  );
+                  
                 if (response.data.success) {
                     setCategories(response.data.categories);
                     setFilteredCategories(response.data.categories);
@@ -123,10 +132,16 @@ const Categories = () => {
 
                 {/* Categories Grid */}
                 {filteredCategories.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <motion.div
+                        key={activeFilter}
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5 }}
+                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+                    >
                         {filteredCategories.map((category, index) => (
                             <motion.div
-                                key={category.id}
+                                key={`${category.id}-${activeFilter}`}
                                 initial={{ opacity: 0, y: 30 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: index * 0.1 }}
@@ -166,7 +181,7 @@ const Categories = () => {
                                 </div>
                             </motion.div>
                         ))}
-                    </div>
+                    </motion.div>
                 ) : (
                     <div className="text-center py-12">
                         <p className="text-gray-500">No categories found for this filter</p>

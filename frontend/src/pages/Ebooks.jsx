@@ -2,22 +2,30 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { BookOpen, ArrowRight, Star } from 'lucide-react';
+import { BookOpen, ArrowRight, Star, Library } from 'lucide-react';
 import Navbar from '../components/HomePage/Navbar';
 import Footer from '../components/HomePage/Footer';
 
 const Ebooks = () => {
     const navigate = useNavigate();
     const [ebooks, setEbooks] = useState([]);
+    const [filteredEbooks, setFilteredEbooks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [activeFilter, setActiveFilter] = useState('all');
 
     useEffect(() => {
         const fetchAllEbooks = async () => {
             try {
                 const response = await axios.post('https://scrollandshelf.pythonanywhere.com/ebooks/all_ebooks/');
                 if (response.data.success) {
-                    setEbooks(response.data.ebooks);
+                    // Add default book_type if missing (backward compatibility)
+                    const ebooksWithType = response.data.ebooks.map(ebook => ({
+                        ...ebook,
+                        book_type: ebook.book_type || 'standalone'
+                    }));
+                    setEbooks(ebooksWithType);
+                    setFilteredEbooks(ebooksWithType);
                 } else {
                     setError('Failed to fetch ebooks');
                 }
@@ -30,6 +38,17 @@ const Ebooks = () => {
 
         fetchAllEbooks();
     }, []);
+
+    useEffect(() => {
+        if (activeFilter === 'all') {
+            setFilteredEbooks(ebooks);
+        } else {
+            const filtered = ebooks.filter(ebook => 
+                (ebook.book_type || 'standalone') === activeFilter
+            );
+            setFilteredEbooks(filtered);
+        }
+    }, [activeFilter, ebooks]);
 
     const handleBookClick = (ebookId) => {
         navigate(`/ebook-detail?id=${ebookId}`);
@@ -50,7 +69,6 @@ const Ebooks = () => {
     return (
         <div className="min-h-screen bg-white">
             <Navbar />
-            {/* Header Section */}
             <div className="max-w-7xl mx-auto px-6 py-16">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -67,9 +85,39 @@ const Ebooks = () => {
                     </p>
                 </motion.div>
 
+                {/* Filter Buttons - Only show if API supports it */}
+                {ebooks.some(ebook => ebook.book_type) && (
+                    <div className="flex justify-center mb-12 space-x-4">
+                        <button
+                            onClick={() => setActiveFilter('all')}
+                            className={`px-6 py-2 rounded-full text-sm font-medium ${
+                                activeFilter === 'all' ? 'bg-amber-600 text-white' : 'bg-gray-100 text-gray-700'
+                            }`}
+                        >
+                            All Books
+                        </button>
+                        <button
+                            onClick={() => setActiveFilter('series')}
+                            className={`px-6 py-2 rounded-full text-sm font-medium ${
+                                activeFilter === 'series' ? 'bg-amber-600 text-white' : 'bg-gray-100 text-gray-700'
+                            }`}
+                        >
+                            Series
+                        </button>
+                        <button
+                            onClick={() => setActiveFilter('standalone')}
+                            className={`px-6 py-2 rounded-full text-sm font-medium ${
+                                activeFilter === 'standalone' ? 'bg-amber-600 text-white' : 'bg-gray-100 text-gray-700'
+                            }`}
+                        >
+                            Standalone
+                        </button>
+                    </div>
+                )}
+
                 {/* Ebooks Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                    {ebooks.map((ebook, index) => (
+                    {filteredEbooks.map((ebook, index) => (
                         <motion.div
                             key={ebook.id}
                             initial={{ opacity: 0, y: 30 }}
@@ -79,30 +127,35 @@ const Ebooks = () => {
                             onClick={() => handleBookClick(ebook.id)}
                         >
                             <div className="relative h-96 overflow-hidden bg-gray-50 rounded-xl shadow-sm hover:shadow-md transition-all">
-                                {/* Book Cover */}
                                 <img
                                     src={`https://scrollandshelf.pythonanywhere.com/${ebook.cover_image}`}
                                     alt={ebook.title}
                                     className="w-full h-full object-cover transform transition-transform duration-500 group-hover:scale-105"
                                 />
-
-                                {/* Gradient Overlay */}
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-black/10 to-transparent" />
 
-                                {/* Bestseller Badge */}
-                                <div className="absolute top-4 left-4 flex items-center bg-amber-100 px-3 py-1 rounded-full">
-                                    <Star className="h-4 w-4 text-amber-600" />
-                                    <span className="ml-1 text-xs font-medium text-amber-900">Popular</span>
+                                {/* Badges */}
+                                <div className="absolute top-4 left-4 space-y-2">
+                                    {ebook.best_seller && (
+                                        <div className="flex items-center bg-amber-100 px-3 py-1 rounded-full">
+                                            <Star className="h-4 w-4 text-amber-600" />
+                                            <span className="ml-1 text-xs font-medium text-amber-900">Bestseller</span>
+                                        </div>
+                                    )}
+                                    {(ebook.book_type === 'series') && (
+                                        <div className="flex items-center bg-blue-100 px-3 py-1 rounded-full">
+                                            <Library className="h-4 w-4 text-blue-600" />
+                                            <span className="ml-1 text-xs font-medium text-blue-900">Series</span>
+                                        </div>
+                                    )}
                                 </div>
 
-                                {/* Book Details */}
                                 <div className="absolute bottom-0 left-0 right-0 p-6">
                                     <h3 className="text-xl font-medium text-white">{ebook.title}</h3>
                                     <p className="text-gray-200 mt-1">{ebook.author}</p>
                                 </div>
                             </div>
 
-                            {/* Hover Action */}
                             <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                 <div className="flex items-center bg-white/90 px-4 py-2 rounded-full">
                                     <BookOpen className="h-5 w-5 text-gray-900 mr-2" />
@@ -114,13 +167,14 @@ const Ebooks = () => {
                     ))}
                 </div>
 
-                {/* View More */}
-                {ebooks.length > 8 && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="mt-16 text-center"
-                    >
+                {filteredEbooks.length === 0 && (
+                    <div className="text-center py-16">
+                        <p className="text-gray-500">No books found matching this filter</p>
+                    </div>
+                )}
+
+                {filteredEbooks.length > 8 && (
+                    <motion.div className="mt-16 text-center">
                         <button className="text-gray-600 hover:text-gray-900 font-medium">
                             Load More Collections
                         </button>
