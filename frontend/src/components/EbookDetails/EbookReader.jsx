@@ -1,200 +1,189 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { 
-  X, ChevronLeft, ChevronRight, BookOpen, Download, 
-  Bookmark, Sun, Moon, Search, List 
-} from 'lucide-react';
+import axios from 'axios';
+import { X, Download, BookOpen } from 'lucide-react';
 
 const EbookReader = () => {
   const [ebook, setEbook] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [settings, setSettings] = useState({
-    fontSize: 16,
-    fontFamily: 'serif',
-    nightMode: false,
-    // Future settings can be added here
-  });
+  const [retryCount, setRetryCount] = useState(0);
   const location = useLocation();
   const navigate = useNavigate();
 
   const queryParams = new URLSearchParams(location.search);
   const ebookId = queryParams.get('id');
 
-  // Fetch book data
   useEffect(() => {
     const fetchEbookDetails = async () => {
-      // ... existing fetch code ...
+      setLoading(true);
+      setError('');
+      
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setError('You must be logged in to read books. Redirecting to login...');
+        setTimeout(() => navigate('/login'), 2000);
+        return;
+      }
+
+      try {
+        console.log('Fetching ebook details for ID:', ebookId);
+        const response = await axios.post(
+          'https://scrollandshelf.pythonanywhere.com/ebooks/ebook_detail/',
+          { id: ebookId },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+            },
+            timeout: 10000 // 10 second timeout
+          }
+        );
+
+        console.log('API Response:', response.data);
+        
+        if (response.data.success) {
+          setEbook(response.data.ebook);
+        } else {
+          setError(response.data.message || 'Failed to load book details.');
+        }
+      } catch (err) {
+        console.error('Error fetching ebook:', err);
+        let errorMessage = 'Error loading book.';
+        
+        if (err.response) {
+          // Server responded with error status
+          errorMessage = err.response.data.message || `Server error: ${err.response.status}`;
+        } else if (err.request) {
+          // Request was made but no response
+          errorMessage = 'No response from server. Please check your connection.';
+        }
+        
+        setError(errorMessage);
+      } finally {
+        setLoading(false);
+      }
     };
+
     fetchEbookDetails();
-  }, [ebookId]);
+  }, [ebookId, retryCount, navigate]);
 
-  // Future: Load saved bookmarks and preferences
-  useEffect(() => {
-    // Load from localStorage:
-    const savedSettings = localStorage.getItem('readerSettings');
-    if (savedSettings) setSettings(JSON.parse(savedSettings));
-    
-    // Load bookmarks for this book
-    // const savedBookmarks = localStorage.getItem(`bookmarks-${ebookId}`);
-  }, [ebookId]);
-
-  // Future: Save settings
-  const updateSettings = (newSettings) => {
-    const updated = { ...settings, ...newSettings };
-    setSettings(updated);
-    localStorage.setItem('readerSettings', JSON.stringify(updated));
+  const handleRetry = () => {
+    setRetryCount(prev => prev + 1);
   };
 
-  // Future: Bookmark functionality
-  const handleBookmark = () => {
-    // Save current page/position to bookmarks
-    // localStorage.setItem(`bookmarks-${ebookId}`, ...);
-  };
+  if (loading) {
+    return (
+      <div className="fixed inset-0 flex flex-col items-center justify-center bg-white z-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mb-4"></div>
+        <p className="text-gray-600">Loading book details...</p>
+        <p className="text-sm text-gray-500 mt-2">Book ID: {ebookId}</p>
+      </div>
+    );
+  }
 
-  if (loading) return <LoadingScreen />;
-  if (error) return <ErrorScreen error={error} />;
-  if (!ebook) return null;
+  if (error) {
+    return (
+      <div className="fixed inset-0 flex flex-col items-center justify-center bg-white z-50 p-6">
+        <div className="max-w-md text-center">
+          <h2 className="text-xl font-medium text-red-600 mb-2">Error Loading Book</h2>
+          <p className="text-gray-700 mb-4">{error}</p>
+          <div className="flex space-x-4 justify-center">
+            <button
+              onClick={handleRetry}
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              Try Again
+            </button>
+            <button
+              onClick={() => navigate(-1)}
+              className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100"
+            >
+              Go Back
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!ebook) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-white z-50">
+        <div className="text-center">
+          <h2 className="text-xl font-medium text-gray-700 mb-2">Book Not Found</h2>
+          <button
+            onClick={() => navigate(-1)}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Back to Collection
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className={`fixed inset-0 z-50 overflow-hidden flex flex-col 
-      ${settings.nightMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-100'}`}>
-      
-      {/* Enhanced Header */}
-      <header className={`p-4 flex justify-between items-center
-        ${settings.nightMode ? 'bg-gray-800' : 'bg-gray-900 text-white'}`}>
-        
-        <div className="flex items-center space-x-4">
-          <button onClick={() => navigate(-1)} className="p-2 rounded-full hover:bg-gray-700">
-            <X className="h-5 w-5" />
-          </button>
+    <div className="fixed inset-0 bg-gray-100 z-50 flex flex-col">
+      {/* Header */}
+      <header className="bg-gray-900 text-white p-4 flex justify-between items-center">
+        <div className="flex items-center">
+          <BookOpen className="h-5 w-5 mr-2" />
           <h1 className="text-xl font-medium truncate max-w-xs">{ebook.title}</h1>
         </div>
         
         <div className="flex items-center space-x-4">
-          {/* Future: Search button */}
-          <button 
-            onClick={() => {/* Implement search modal */}}
-            className="p-2 rounded-full hover:bg-gray-700"
-          >
-            <Search className="h-5 w-5" />
-          </button>
-          
-          {/* Night mode toggle */}
-          <button 
-            onClick={() => updateSettings({ nightMode: !settings.nightMode })}
-            className="p-2 rounded-full hover:bg-gray-700"
-          >
-            {settings.nightMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-          </button>
-          
-          {/* Download button */}
           <a 
             href={`https://scrollandshelf.pythonanywhere.com/${ebook.file_url}`}
             download
-            className="flex items-center hover:text-gray-300"
+            className="flex items-center text-white hover:text-gray-300"
           >
             <Download className="h-5 w-5" />
           </a>
+          <button
+            onClick={() => navigate(-1)}
+            className="p-2 rounded-full hover:bg-gray-700"
+          >
+            <X className="h-5 w-5" />
+          </button>
         </div>
       </header>
 
-      {/* Main Content Area */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Future: Table of Contents sidebar */}
-        <div className={`w-64 border-r p-4 overflow-y-auto
-          ${settings.nightMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-          <h3 className="font-medium mb-4 flex items-center">
-            <List className="h-4 w-4 mr-2" /> Table of Contents
-          </h3>
-          {/* TOC items would be rendered here */}
-          <div className="text-sm text-gray-500">TOC will be implemented later</div>
-        </div>
-
-        {/* Reading Area */}
-        <div className="flex-1 flex flex-col">
-          {/* Future: Text customization toolbar */}
-          <div className={`p-2 border-b flex items-center space-x-4
-            ${settings.nightMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-            <select 
-              value={settings.fontFamily}
-              onChange={(e) => updateSettings({ fontFamily: e.target.value })}
-              className="bg-transparent border rounded px-2 py-1 text-sm"
-            >
-              <option value="serif">Serif</option>
-              <option value="sans-serif">Sans-serif</option>
-              <option value="monospace">Monospace</option>
-            </select>
-            <div className="flex items-center space-x-2">
-              <button onClick={() => updateSettings({ fontSize: Math.max(12, settings.fontSize - 1) })}>
-                A-
-              </button>
-              <span className="text-sm w-8 text-center">{settings.fontSize}px</span>
-              <button onClick={() => updateSettings({ fontSize: Math.min(24, settings.fontSize + 1) })}>
-                A+
-              </button>
+      {/* Main Content */}
+      <div className="flex-1">
+        {ebook.file_url?.endsWith('.pdf') ? (
+          <iframe 
+            src={`https://scrollandshelf.pythonanywhere.com/${ebook.file_url}#view=fitH`}
+            className="w-full h-full border-0"
+            title={ebook.title}
+            onLoad={() => console.log('PDF loaded successfully')}
+            onError={(e) => {
+              console.error('PDF load error:', e);
+              setError('Failed to load PDF content.');
+            }}
+          />
+        ) : (
+          <div className="flex flex-col items-center justify-center h-full p-8">
+            <div className="max-w-2xl mx-auto text-center">
+              <BookOpen className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+              <h2 className="text-xl font-medium mb-2">No Preview Available</h2>
+              <p className="text-gray-600 mb-6">
+                This book format cannot be displayed in the browser. Please download it to read.
+              </p>
+              <a
+                href={`https://scrollandshelf.pythonanywhere.com/${ebook.file_url}`}
+                download
+                className="inline-flex items-center bg-gray-900 text-white px-6 py-3 rounded-lg hover:bg-gray-800"
+              >
+                <Download className="h-5 w-5 mr-2" />
+                Download Book
+              </a>
             </div>
           </div>
-
-          {/* Book Content */}
-          <div 
-            className="flex-1 overflow-auto p-8"
-            style={{
-              fontSize: `${settings.fontSize}px`,
-              fontFamily: settings.fontFamily,
-              ...(settings.nightMode && { backgroundColor: '#1a202c', color: '#e2e8f0' })
-            }}
-          >
-            {ebook.file_url?.endsWith('.pdf') ? (
-              <iframe 
-                src={`https://scrollandshelf.pythonanywhere.com/${ebook.file_url}#view=fitH`}
-                className="w-full h-full border-0"
-                title={ebook.title}
-              />
-            ) : (
-              <div className="max-w-2xl mx-auto">
-                {/* Future: Actual book content rendering */}
-                <p className="mb-4">Book content will be rendered here.</p>
-                {/* Future: Search results would appear here */}
-              </div>
-            )}
-          </div>
-        </div>
+        )}
       </div>
-
-      {/* Footer Controls */}
-      <div className={`p-2 border-t flex items-center justify-between
-        ${settings.nightMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-        
-        <button 
-          onClick={handleBookmark}
-          className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
-        >
-          <Bookmark className="h-5 w-5" />
-        </button>
-        
-        {/* Future: Page navigation would go here */}
-        <div className="text-sm">
-          Page 1 of 1
-        </div>
-      </div>
-
-      {/* Future: Search modal would appear here conditionally */}
     </div>
   );
 };
-
-// Helper components
-const LoadingScreen = () => (
-  <div className="flex justify-center items-center h-screen">
-    <div className="animate-pulse text-gray-500">Loading book...</div>
-  </div>
-);
-
-const ErrorScreen = ({ error }) => (
-  <div className="text-center text-red-500 p-8">
-    Error: {error}
-  </div>
-);
 
 export default EbookReader;
