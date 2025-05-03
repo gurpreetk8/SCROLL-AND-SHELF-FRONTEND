@@ -133,7 +133,10 @@ const ReviewRating = ({ ebookId }) => {
     });
 
   const resetForm = () => {
-    setFormData({ rating: 0, review_text: '' });
+    setFormData(userReview ? {
+      rating: userReview.rating,
+      review_text: userReview.review_text
+    } : { rating: 0, review_text: '' });
     setShowModal(false);
     setSubmissionSuccess(false);
   };
@@ -168,12 +171,18 @@ const ReviewRating = ({ ebookId }) => {
             </div>
           </div>
 
-          {token && !userReview && (
+          {token && (
             <button
-              onClick={() => setShowModal(true)}
+              onClick={() => {
+                setShowModal(true);
+                setFormData(userReview ? {
+                  rating: userReview.rating,
+                  review_text: userReview.review_text
+                } : { rating: 0, review_text: '' });
+              }}
               className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-2 rounded-md font-medium transition-colors shadow-sm"
             >
-              Write a Review
+              {userReview ? 'Update Review' : 'Write a Review'}
             </button>
           )}
         </div>
@@ -293,7 +302,7 @@ const ReviewRating = ({ ebookId }) => {
           <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
             <div className="flex justify-between items-center border-b p-4">
               <h3 className="text-lg font-semibold text-gray-800">
-                {userReview ? 'Edit Your Review' : 'Write a Review'}
+                {userReview ? 'Update Your Review' : 'Write a Review'}
               </h3>
               <button 
                 onClick={resetForm}
@@ -312,7 +321,7 @@ const ReviewRating = ({ ebookId }) => {
                   </svg>
                 </div>
                 <h4 className="text-xl font-semibold text-gray-800 mb-2">Thank You!</h4>
-                <p className="text-gray-600">Your review has been submitted successfully.</p>
+                <p className="text-gray-600">Your review has been {userReview ? 'updated' : 'submitted'} successfully.</p>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="p-6">
@@ -361,10 +370,10 @@ const ReviewRating = ({ ebookId }) => {
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
-                        Submitting...
+                        {userReview ? 'Updating...' : 'Submitting...'}
                       </span>
                     ) : (
-                      'Submit Review'
+                      userReview ? 'Update Review' : 'Submit Review'
                     )}
                   </button>
                   <button
