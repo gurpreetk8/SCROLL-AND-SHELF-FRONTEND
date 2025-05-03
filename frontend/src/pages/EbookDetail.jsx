@@ -136,14 +136,24 @@ const EbookDetail = () => {
               {/* Action Buttons */}
               <div className="flex items-center space-x-4">
                 {ebook.file_url ? (
-                  <motion.a
-                    whileHover={{ scale: 1.05 }}
-                    href={`https://scrollandshelf.pythonanywhere.com/${ebook.file_url}`}
-                    className="flex items-center bg-gray-900 text-white px-8 py-3 rounded-lg hover:bg-gray-800"
-                  >
-                    <Download className="h-5 w-5 mr-2" />
-                    Download Now
-                  </motion.a>
+                  <>
+                    <motion.a
+                      whileHover={{ scale: 1.05 }}
+                      href={`https://scrollandshelf.pythonanywhere.com/${ebook.file_url}`}
+                      className="flex items-center bg-gray-900 text-white px-8 py-3 rounded-lg hover:bg-gray-800"
+                    >
+                      <Download className="h-5 w-5 mr-2" />
+                      Download Now
+                    </motion.a>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      onClick={() => navigate(`/read?id=${ebookId}`)}
+                      className="flex items-center bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700"
+                    >
+                      <BookOpen className="h-5 w-5 mr-2" />
+                      Read Now
+                    </motion.button>
+                  </>
                 ) : (
                   <motion.button
                     whileHover={{ scale: 1.05 }}
