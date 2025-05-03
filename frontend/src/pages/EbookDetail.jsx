@@ -5,6 +5,7 @@ import axios from 'axios';
 import { BookOpen, Download, ArrowLeft, Bookmark, Share2, Star } from 'lucide-react';
 import Footer from '../components/HomePage/Footer';
 import Navbar from '../components/HomePage/Navbar';
+import ReviewRating from '../components/EbookDetails/ReviewRating';
 
 const EbookDetail = () => {
   const [ebook, setEbook] = useState(null);
@@ -188,6 +189,7 @@ const EbookDetail = () => {
         </div>
       </section>
 
+      <ReviewRating />
       <Footer />
     </div>
   );
