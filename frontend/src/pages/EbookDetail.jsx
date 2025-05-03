@@ -133,6 +133,27 @@ const EbookDetail = () => {
                 {ebook.description}
               </p>
 
+              {/* Tags Section */}
+              <div className="mb-8">
+                <h3 className="text-sm font-medium text-gray-500 mb-2">CATEGORIES</h3>
+                <div className="flex flex-wrap gap-2">
+                  {ebook.tags?.map((tag, index) => (
+                    <span 
+                      key={index} 
+                      className="px-3 py-1 bg-gray-100 text-gray-800 text-sm rounded-full"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                  {/* Fallback if no tags exist */}
+                  {(!ebook.tags || ebook.tags.length === 0) && (
+                    <span className="px-3 py-1 bg-gray-100 text-gray-800 text-sm rounded-full">
+                      Fiction
+                    </span>
+                  )}
+                </div>
+              </div>
+
               {/* Action Buttons */}
               <div className="flex items-center space-x-4">
                 {ebook.file_url ? (
