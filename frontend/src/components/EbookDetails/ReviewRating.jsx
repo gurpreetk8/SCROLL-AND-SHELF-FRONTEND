@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Star, MessageSquare, User, Calendar, Edit, Trash2 } from 'lucide-react';
+import { Star, MessageSquare, User, Calendar, Edit, Trash2, X } from 'lucide-react';
 
 const ReviewRating = ({ ebookId }) => {
   const [reviews, setReviews] = useState([]);
@@ -8,7 +8,8 @@ const ReviewRating = ({ ebookId }) => {
   const [totalReviews, setTotalReviews] = useState(0);
   const [userReview, setUserReview] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [editing, setEditing] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [submissionSuccess, setSubmissionSuccess] = useState(false);
   const [error, setError] = useState(null);
   const [formData, setFormData] = useState({ rating: 0, review_text: '' });
 
@@ -87,7 +88,11 @@ const ReviewRating = ({ ebookId }) => {
           review_text: formData.review_text,
           created_at: new Date().toISOString(),
         });
-        setEditing(false);
+        setSubmissionSuccess(true);
+        setTimeout(() => {
+          setSubmissionSuccess(false);
+          setShowModal(false);
+        }, 2000);
       }
     } catch (err) {
       alert('Failed to submit review');
@@ -127,97 +132,55 @@ const ReviewRating = ({ ebookId }) => {
       day: 'numeric',
     });
 
+  const resetForm = () => {
+    setFormData({ rating: 0, review_text: '' });
+    setShowModal(false);
+    setSubmissionSuccess(false);
+  };
+
   return (
     <div className="max-w-3xl mx-auto py-8 px-4">
       {/* Summary Section */}
       <div className="mb-8 bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Customer Reviews</h2>
-        
-        <div className="flex items-center space-x-4 mb-3">
-          <div className="flex items-center">
-            <div className="text-4xl font-bold text-gray-800 mr-2">
-              {averageRating.toFixed(1)}
-            </div>
-            <div className="flex flex-col">
+        <div className="flex justify-between items-start">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">Customer Reviews</h2>
+            
+            <div className="flex items-center space-x-4 mb-3">
               <div className="flex items-center">
-                {[1, 2, 3, 4, 5].map((s) => (
-                  <Star
-                    key={s}
-                    className={`w-5 h-5 ${s <= Math.round(averageRating) ? 'text-amber-500 fill-amber-500' : 'text-gray-300'}`}
-                  />
-                ))}
+                <div className="text-4xl font-bold text-gray-800 mr-2">
+                  {averageRating.toFixed(1)}
+                </div>
+                <div className="flex flex-col">
+                  <div className="flex items-center">
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <Star
+                        key={s}
+                        className={`w-5 h-5 ${s <= Math.round(averageRating) ? 'text-amber-500 fill-amber-500' : 'text-gray-300'}`}
+                      />
+                    ))}
+                  </div>
+                  <span className="text-sm text-gray-500 mt-1">
+                    Based on {totalReviews} review{totalReviews !== 1 ? 's' : ''}
+                  </span>
+                </div>
               </div>
-              <span className="text-sm text-gray-500 mt-1">
-                Based on {totalReviews} review{totalReviews !== 1 ? 's' : ''}
-              </span>
             </div>
           </div>
+
+          {token && !userReview && (
+            <button
+              onClick={() => setShowModal(true)}
+              className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-2 rounded-md font-medium transition-colors shadow-sm"
+            >
+              Write a Review
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Write/Edit Form */}
-      {token && (editing || !userReview) && (
-        <form onSubmit={handleSubmit} className="mb-8 bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">
-            {userReview ? 'Edit Your Review' : 'Write a Review'}
-          </h3>
-          
-          <div className="mb-4">
-            <label className="block font-medium text-gray-700 mb-2">Your Rating</label>
-            <div className="flex space-x-1">
-              {[1, 2, 3, 4, 5].map((s) => (
-                <button 
-                  type="button" 
-                  key={s} 
-                  onClick={() => handleRatingChange(s)}
-                  className="focus:outline-none"
-                >
-                  <Star
-                    className={`w-8 h-8 transition-colors ${s <= formData.rating ? 'text-amber-500 fill-amber-500' : 'text-gray-300 hover:text-amber-400'}`}
-                  />
-                </button>
-              ))}
-            </div>
-          </div>
-          
-          <div className="mb-4">
-            <label htmlFor="review_text" className="block font-medium text-gray-700 mb-2">
-              Your Review
-            </label>
-            <textarea
-              id="review_text"
-              name="review_text"
-              rows="4"
-              className="w-full border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition"
-              placeholder="Share your thoughts about this book..."
-              value={formData.review_text}
-              onChange={handleInputChange}
-            ></textarea>
-          </div>
-          
-          <div className="flex gap-3">
-            <button
-              type="submit"
-              className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-2 rounded-md font-medium transition-colors shadow-sm"
-              disabled={loading}
-            >
-              {loading ? 'Submitting...' : 'Submit Review'}
-            </button>
-            {userReview && (
-              <button
-                type="button"
-                onClick={() => setEditing(false)}
-                className="bg-gray-100 hover:bg-gray-200 text-gray-800 px-6 py-2 rounded-md font-medium transition-colors"
-              >
-                Cancel
-              </button>
-            )}
-          </div>
-        </form>
-      )}
-
       {/* User's Own Review */}
-      {userReview && !editing && (
+      {userReview && (
         <div className="mb-8 bg-white p-6 rounded-lg shadow-sm border border-gray-100">
           <div className="flex justify-between items-start">
             <div>
@@ -247,7 +210,13 @@ const ReviewRating = ({ ebookId }) => {
             
             <div className="flex gap-2">
               <button 
-                onClick={() => setEditing(true)} 
+                onClick={() => {
+                  setFormData({
+                    rating: userReview.rating,
+                    review_text: userReview.review_text
+                  });
+                  setShowModal(true);
+                }}
                 className="p-2 rounded-full hover:bg-gray-100 transition-colors"
                 aria-label="Edit review"
               >
@@ -306,9 +275,111 @@ const ReviewRating = ({ ebookId }) => {
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 text-center">
             <MessageSquare className="w-8 h-8 text-gray-400 mx-auto mb-2" />
             <p className="text-gray-500">No reviews yet. Be the first to review!</p>
+            {token && (
+              <button
+                onClick={() => setShowModal(true)}
+                className="mt-4 bg-amber-600 hover:bg-amber-700 text-white px-6 py-2 rounded-md font-medium transition-colors shadow-sm"
+              >
+                Write a Review
+              </button>
+            )}
           </div>
         )}
       </div>
+
+      {/* Review Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
+            <div className="flex justify-between items-center border-b p-4">
+              <h3 className="text-lg font-semibold text-gray-800">
+                {userReview ? 'Edit Your Review' : 'Write a Review'}
+              </h3>
+              <button 
+                onClick={resetForm}
+                className="text-gray-400 hover:text-gray-500"
+                aria-label="Close modal"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            {submissionSuccess ? (
+              <div className="p-6 text-center">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <h4 className="text-xl font-semibold text-gray-800 mb-2">Thank You!</h4>
+                <p className="text-gray-600">Your review has been submitted successfully.</p>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="p-6">
+                <div className="mb-6">
+                  <label className="block font-medium text-gray-700 mb-3">Your Rating</label>
+                  <div className="flex justify-center space-x-2">
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <button 
+                        type="button" 
+                        key={s} 
+                        onClick={() => handleRatingChange(s)}
+                        className="focus:outline-none transition-transform hover:scale-110"
+                      >
+                        <Star
+                          className={`w-10 h-10 ${s <= formData.rating ? 'text-amber-500 fill-amber-500' : 'text-gray-300 hover:text-amber-400'}`}
+                        />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="mb-6">
+                  <label htmlFor="review_text" className="block font-medium text-gray-700 mb-2">
+                    Your Review
+                  </label>
+                  <textarea
+                    id="review_text"
+                    name="review_text"
+                    rows="5"
+                    className="w-full border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition"
+                    placeholder="Share your detailed thoughts about this book..."
+                    value={formData.review_text}
+                    onChange={handleInputChange}
+                  ></textarea>
+                </div>
+                
+                <div className="flex gap-3">
+                  <button
+                    type="submit"
+                    className="flex-1 bg-amber-600 hover:bg-amber-700 text-white px-6 py-3 rounded-md font-medium transition-colors shadow-sm disabled:opacity-50"
+                    disabled={loading || formData.rating === 0}
+                  >
+                    {loading ? (
+                      <span className="flex items-center justify-center">
+                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Submitting...
+                      </span>
+                    ) : (
+                      'Submit Review'
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={resetForm}
+                    className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 px-6 py-3 rounded-md font-medium transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
