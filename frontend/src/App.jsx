@@ -7,6 +7,7 @@ import Categories from './pages/Categories';
 import UserDashboard from './pages/UserDashboard';
 import EbookDetail from './pages/EbookDetail';
 import Ebooks from './pages/Ebooks';
+import EbookReader from './components/EbookDetails/EbookReader';
 import CategoryEbooks from './pages/CategoryEbooks';
 import SubscriptionOverview from './pages/SubscriptionOverview';
 import PrePayment from './pages/PrePayment';
@@ -24,6 +25,7 @@ function App() {
         <Route path="/dashboard" element={<UserDashboard />} />
         <Route path="/ebook-detail" element={<EbookDetail />} />
         <Route path="/ebooks" element={<Ebooks />} />
+        <Route path="/read" element={<EbookReader />} />
         <Route path="/category-ebooks" element={<CategoryEbooks />} />
         <Route path="/subscribe" element={<SubscriptionOverview />} />
         <Route path="/pre-payment" element={<PrePayment />} />
