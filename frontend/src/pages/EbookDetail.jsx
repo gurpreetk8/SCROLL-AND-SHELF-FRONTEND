@@ -135,7 +135,7 @@ const EbookDetail = () => {
 
               {/* Tags Section */}
               <div className="mb-8">
-                <h3 className="text-sm font-medium text-gray-500 mb-2">CATEGORIES</h3>
+                <h3 className="text-sm font-medium text-gray-500 mb-2"></h3>
                 <div className="flex flex-wrap gap-2">
                   {ebook.tags?.map((tag, index) => (
                     <span 
