@@ -129,56 +129,85 @@ const ReviewRating = ({ ebookId }) => {
 
   return (
     <div className="max-w-3xl mx-auto py-8 px-4">
-      {/* Summary */}
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold">Customer Reviews</h2>
-        <div className="flex items-center mt-2">
-          {[1, 2, 3, 4, 5].map((s) => (
-            <Star
-              key={s}
-              className={`w-5 h-5 ${s <= Math.round(averageRating) ? 'text-amber-500 fill-amber-500' : 'text-gray-300'}`}
-            />
-          ))}
-          <span className="ml-2 text-gray-600">{averageRating.toFixed(1)} out of 5</span>
+      {/* Summary Section */}
+      <div className="mb-8 bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">Customer Reviews</h2>
+        
+        <div className="flex items-center space-x-4 mb-3">
+          <div className="flex items-center">
+            <div className="text-4xl font-bold text-gray-800 mr-2">
+              {averageRating.toFixed(1)}
+            </div>
+            <div className="flex flex-col">
+              <div className="flex items-center">
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <Star
+                    key={s}
+                    className={`w-5 h-5 ${s <= Math.round(averageRating) ? 'text-amber-500 fill-amber-500' : 'text-gray-300'}`}
+                  />
+                ))}
+              </div>
+              <span className="text-sm text-gray-500 mt-1">
+                Based on {totalReviews} review{totalReviews !== 1 ? 's' : ''}
+              </span>
+            </div>
+          </div>
         </div>
-        <p className="text-gray-500">{totalReviews} review(s)</p>
       </div>
 
       {/* Write/Edit Form */}
       {token && (editing || !userReview) && (
-        <form onSubmit={handleSubmit} className="mb-6 bg-gray-100 p-4 rounded-lg">
-          <div className="mb-3">
-            <label className="block font-medium mb-1">Your Rating</label>
-            <div className="flex">
+        <form onSubmit={handleSubmit} className="mb-8 bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+            {userReview ? 'Edit Your Review' : 'Write a Review'}
+          </h3>
+          
+          <div className="mb-4">
+            <label className="block font-medium text-gray-700 mb-2">Your Rating</label>
+            <div className="flex space-x-1">
               {[1, 2, 3, 4, 5].map((s) => (
-                <button type="button" key={s} onClick={() => handleRatingChange(s)}>
+                <button 
+                  type="button" 
+                  key={s} 
+                  onClick={() => handleRatingChange(s)}
+                  className="focus:outline-none"
+                >
                   <Star
-                    className={`w-7 h-7 ${s <= formData.rating ? 'text-amber-500 fill-amber-500' : 'text-gray-300'}`}
+                    className={`w-8 h-8 transition-colors ${s <= formData.rating ? 'text-amber-500 fill-amber-500' : 'text-gray-300 hover:text-amber-400'}`}
                   />
                 </button>
               ))}
             </div>
           </div>
-          <textarea
-            name="review_text"
-            rows="3"
-            className="w-full border rounded-md p-2 mb-3"
-            placeholder="Your review..."
-            value={formData.review_text}
-            onChange={handleInputChange}
-          ></textarea>
+          
+          <div className="mb-4">
+            <label htmlFor="review_text" className="block font-medium text-gray-700 mb-2">
+              Your Review
+            </label>
+            <textarea
+              id="review_text"
+              name="review_text"
+              rows="4"
+              className="w-full border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition"
+              placeholder="Share your thoughts about this book..."
+              value={formData.review_text}
+              onChange={handleInputChange}
+            ></textarea>
+          </div>
+          
           <div className="flex gap-3">
             <button
               type="submit"
-              className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-md"
+              className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-2 rounded-md font-medium transition-colors shadow-sm"
+              disabled={loading}
             >
-              Submit
+              {loading ? 'Submitting...' : 'Submit Review'}
             </button>
             {userReview && (
               <button
                 type="button"
                 onClick={() => setEditing(false)}
-                className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-md"
+                className="bg-gray-100 hover:bg-gray-200 text-gray-800 px-6 py-2 rounded-md font-medium transition-colors"
               >
                 Cancel
               </button>
@@ -189,30 +218,46 @@ const ReviewRating = ({ ebookId }) => {
 
       {/* User's Own Review */}
       {userReview && !editing && (
-        <div className="mb-6 p-4 bg-amber-50 border rounded-md">
+        <div className="mb-8 bg-white p-6 rounded-lg shadow-sm border border-gray-100">
           <div className="flex justify-between items-start">
             <div>
-              <p className="font-semibold flex items-center mb-1">
-                <User className="w-4 h-4 mr-1" /> Your Review
-              </p>
-              <div className="flex items-center">
-                {[1, 2, 3, 4, 5].map((s) => (
-                  <Star
-                    key={s}
-                    className={`w-4 h-4 ${s <= userReview.rating ? 'text-amber-500 fill-amber-500' : 'text-gray-300'}`}
-                  />
-                ))}
-                <span className="text-sm text-gray-500 ml-2">
+              <div className="flex items-center mb-2">
+                <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center mr-3">
+                  <User className="w-4 h-4 text-amber-600" />
+                </div>
+                <h3 className="font-semibold text-gray-800">Your Review</h3>
+              </div>
+              
+              <div className="flex items-center mb-3">
+                <div className="flex mr-3">
+                  {[1, 2, 3, 4, 5].map((s) => (
+                    <Star
+                      key={s}
+                      className={`w-5 h-5 ${s <= userReview.rating ? 'text-amber-500 fill-amber-500' : 'text-gray-300'}`}
+                    />
+                  ))}
+                </div>
+                <span className="text-sm text-gray-500">
                   {formatDate(userReview.created_at)}
                 </span>
               </div>
-              <p className="mt-2">{userReview.review_text}</p>
+              
+              <p className="text-gray-700 whitespace-pre-line">{userReview.review_text}</p>
             </div>
-            <div className="flex gap-2 mt-1">
-              <button onClick={() => setEditing(true)} title="Edit">
+            
+            <div className="flex gap-2">
+              <button 
+                onClick={() => setEditing(true)} 
+                className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                aria-label="Edit review"
+              >
                 <Edit className="w-5 h-5 text-amber-600 hover:text-amber-800" />
               </button>
-              <button onClick={handleDelete} title="Delete">
+              <button 
+                onClick={handleDelete} 
+                className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                aria-label="Delete review"
+              >
                 <Trash2 className="w-5 h-5 text-red-500 hover:text-red-700" />
               </button>
             </div>
@@ -222,27 +267,47 @@ const ReviewRating = ({ ebookId }) => {
 
       {/* All Reviews */}
       <div className="space-y-6">
-        {reviews.map((r) => (
-          <div key={r.id} className="border-b pb-4">
-            <div className="flex items-center mb-1">
-              <User className="w-4 h-4 text-gray-400 mr-1" />
-              <span className="text-sm text-gray-700">{r.username}</span>
-              <span className="text-sm text-gray-400 ml-2">
-                <Calendar className="w-3 h-3 inline-block mr-1" />
-                {formatDate(r.created_at)}
-              </span>
+        <h3 className="text-xl font-semibold text-gray-800 mb-4">
+          Customer Reviews ({totalReviews})
+        </h3>
+        
+        {reviews.length > 0 ? (
+          reviews.map((r) => (
+            <div key={r.id} className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+              <div className="flex items-center mb-3">
+                <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center mr-3">
+                  <User className="w-4 h-4 text-gray-500" />
+                </div>
+                <div>
+                  <p className="font-medium text-gray-800">{r.username}</p>
+                  <div className="flex items-center">
+                    <div className="flex mr-2">
+                      {[1, 2, 3, 4, 5].map((s) => (
+                        <Star
+                          key={s}
+                          className={`w-4 h-4 ${s <= r.rating ? 'text-amber-500 fill-amber-500' : 'text-gray-300'}`}
+                        />
+                      ))}
+                    </div>
+                    <span className="text-xs text-gray-500 flex items-center">
+                      <Calendar className="w-3 h-3 mr-1" />
+                      {formatDate(r.created_at)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+              {r.review_text && (
+                <p className="text-gray-700 mt-2 whitespace-pre-line">{r.review_text}</p>
+              )}
             </div>
-            <div className="flex">
-              {[1, 2, 3, 4, 5].map((s) => (
-                <Star
-                  key={s}
-                  className={`w-4 h-4 ${s <= r.rating ? 'text-amber-500 fill-amber-500' : 'text-gray-300'}`}
-                />
-              ))}
-            </div>
-            {r.review_text && <p className="mt-1 text-gray-700">{r.review_text}</p>}
+          ))
+        ) : (
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 text-center">
+            <MessageSquare className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+            <p className="text-gray-500">No reviews yet. Be the first to review!</p>
           </div>
-        ))}
+        )}
       </div>
     </div>
   );
