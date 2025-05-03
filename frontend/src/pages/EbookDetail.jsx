@@ -12,7 +12,7 @@ const EbookDetail = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const location = useLocation();
-  const navigate = useNavigate(); // Added missing navigate declaration
+  const navigate = useNavigate();
 
   const queryParams = new URLSearchParams(location.search);
   const ebookId = queryParams.get('id');
@@ -61,13 +61,13 @@ const EbookDetail = () => {
 
   if (loading) return (
     <div className="flex justify-center items-center h-screen">
-        <div className="animate-pulse text-gray-500">Loading book details...</div>
+      <div className="animate-pulse text-gray-500">Loading book details...</div>
     </div>
   );
 
   if (error) return (
     <div className="text-center text-red-500 p-8">
-        Error: {error}  
+      Error: {error}
     </div>
   );
 
@@ -76,7 +76,7 @@ const EbookDetail = () => {
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
-      
+
       {/* Book Header */}
       <motion.header
         initial={{ opacity: 0 }}
@@ -189,7 +189,13 @@ const EbookDetail = () => {
         </div>
       </section>
 
-      <ReviewRating />
+      {/* Reviews and Ratings */}
+      <section className="py-10 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-6">
+          <ReviewRating ebookId={ebook.id} />
+        </div>
+      </section>
+
       <Footer />
     </div>
   );
