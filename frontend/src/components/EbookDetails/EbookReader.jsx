@@ -84,7 +84,7 @@ const EbookReader = () => {
       ...prev,
       fontSize: Math.min(24, Math.max(12, 
         prev.fontSize + (increase ? 1 : -1)
-      )
+      ))
     }));
   };
 
