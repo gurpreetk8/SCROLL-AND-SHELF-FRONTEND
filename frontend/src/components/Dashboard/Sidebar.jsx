@@ -3,7 +3,7 @@ export default function Sidebar({ activeSection, setActiveSection }) {
     { name: "Profile", key: "profile" },
     { name: "My Library", key: "library" },
     { name: "Recommendations", key: "recommendations" },
-    { name: "Activity", key: "activity" },
+    { name: "Wishlist", key: "wishlist" },
     { name: "Subscriptions", key: "subscriptions" },
     { name: "Community", key: "community" },
     { name: "Settings", key: "settings" },
