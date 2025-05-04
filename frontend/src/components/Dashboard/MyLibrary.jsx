@@ -27,7 +27,12 @@ export default function MyLibrary() {
       );
 
       if (response.data.success) {
-        setBooks(response.data.books);
+        // Ensure author is treated as string
+        const formattedBooks = response.data.books.map(book => ({
+          ...book,
+          author: book.author || "Unknown Author" // Handle null/undefined author
+        }));
+        setBooks(formattedBooks);
       } else {
         setError(response.data.message || "Failed to fetch reading books");
       }
@@ -131,7 +136,7 @@ export default function MyLibrary() {
                 }}
               />
               <h3 className="mt-3 font-semibold text-gray-700">{book.title}</h3>
-              <p className="text-sm text-gray-500 mb-2">{book.author || "Unknown Author"}</p>
+              <p className="text-sm text-gray-500 mb-2">{book.author}</p>
               
               <div className="text-xs text-gray-400 space-y-1 mb-3">
                 <p>Started: {formatDate(book.started_reading)}</p>
