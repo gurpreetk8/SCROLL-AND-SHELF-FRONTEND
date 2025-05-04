@@ -64,7 +64,7 @@ const EbookDetail = () => {
       // First add the book to reading list
       const readingResponse = await axios.post(
         'https://scrollandshelf.pythonanywhere.com/ebooks/add_reading_book/',
-        { book_id: ebookId },
+        { id: ebookId },  // Changed from book_id to id to match API expectation
         {
           headers: {
             'Content-Type': 'application/json',
