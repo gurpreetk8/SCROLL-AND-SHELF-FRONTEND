@@ -11,11 +11,58 @@ const EbookDetail = () => {
   const [ebook, setEbook] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [isInWishlist, setIsInWishlist] = useState(false);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
+  const [wishlistId, setWishlistId] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
 
   const queryParams = new URLSearchParams(location.search);
   const ebookId = queryParams.get('id');
+
+  const handleAddToWishlist = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setError('You must be logged in to add to wishlist.');
+      return;
+    }
+
+    setWishlistLoading(true);
+    try {
+      const response = await axios.post(
+        'https://scrollandshelf.pythonanywhere.com/ebooks/add_to_wishlist/',
+        { ebook_id: ebookId },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        setIsInWishlist(true);
+        setWishlistId(response.data.wishlist_id);
+      }
+    } catch (err) {
+      setError('Error adding to wishlist.');
+    } finally {
+      setWishlistLoading(false);
+    }
+  };
+
+  const checkWishlistStatus = async () => {
+    const token = localStorage.getItem('token');
+    if (!token || !ebookId) return;
+
+    try {
+      // You might want to add an API endpoint to check wishlist status
+      // For now, we'll assume the bookmark button shows the visual state only
+      // and the actual check would be done via a separate API call
+    } catch (err) {
+      console.error('Error checking wishlist status:', err);
+    }
+  };
 
   useEffect(() => {
     const fetchEbookDetails = async () => {
@@ -46,6 +93,8 @@ const EbookDetail = () => {
 
         if (response.data.success) {
           setEbook(response.data.ebook);
+          // Check wishlist status after ebook details are loaded
+          await checkWishlistStatus();
         } else {
           setError(response.data.message || 'Failed to fetch ebook details.');
         }
@@ -145,7 +194,6 @@ const EbookDetail = () => {
                       {tag}
                     </span>
                   ))}
-                  {/* Fallback if no tags exist */}
                   {(!ebook.tags || ebook.tags.length === 0) && (
                     <span className="px-3 py-1 bg-gray-100 text-gray-800 text-sm rounded-full">
                       Fiction
@@ -185,9 +233,16 @@ const EbookDetail = () => {
                     Subscribe to Access
                   </motion.button>
                 )}
-                <button className="p-3 rounded-full border border-gray-200 hover:border-gray-300">
-                  <Bookmark className="h-5 w-5 text-gray-600" />
-                </button>
+                <motion.button 
+                  whileHover={{ scale: 1.1 }}
+                  onClick={handleAddToWishlist}
+                  disabled={wishlistLoading || isInWishlist}
+                  className={`p-3 rounded-full border ${isInWishlist ? 'bg-amber-100 border-amber-300' : 'border-gray-200 hover:border-gray-300'}`}
+                >
+                  <Bookmark 
+                    className={`h-5 w-5 ${isInWishlist ? 'text-amber-600 fill-amber-600' : 'text-gray-600'}`} 
+                  />
+                </motion.button>
                 <button className="p-3 rounded-full border border-gray-200 hover:border-gray-300">
                   <Share2 className="h-5 w-5 text-gray-600" />
                 </button>
@@ -202,7 +257,7 @@ const EbookDetail = () => {
         <div className="max-w-7xl mx-auto px-6">
           <h2 className="text-2xl font-medium text-gray-900 mb-8">Preview Pages</h2>
           <div className="flex overflow-x-auto pb-6 space-x-4 scrollbar-hide">
-            {ebook.sample_images.map((image, index) => (
+            {ebook.sample_images?.map((image, index) => (
               <motion.div
                 key={index}
                 whileHover={{ scale: 1.02 }}

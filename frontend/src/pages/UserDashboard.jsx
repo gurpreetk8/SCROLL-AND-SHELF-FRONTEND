@@ -4,7 +4,7 @@ import Sidebar from "../components/Dashboard/Sidebar";
 import ProfileSummary from "../components/Dashboard/ProfileSummary";
 import MyLibrary from "../components/Dashboard/MyLibrary";
 import Recommendations from "../components/Dashboard/Recommendations";
-import Activity from "../components/Dashboard/Activity";
+import Wishlist from "../components/Dashboard/Wishlist";
 import Subscriptions from "../components/Dashboard/Subscription";
 import CommunitySection from "../components/Dashboard/CommunitySection";
 import SettingsLogout from "../components/Dashboard/SettingLogout";
@@ -22,8 +22,8 @@ export default function UserDashboard() {
         return <MyLibrary />;
       case "recommendations":
         return <Recommendations />;
-      case "activity":
-        return <Activity />;
+      case "wishlist":
+        return <Wishlist/>;
       case "subscriptions":
         return <Subscriptions />;
       case "community":
