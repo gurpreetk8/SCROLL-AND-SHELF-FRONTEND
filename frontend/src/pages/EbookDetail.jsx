@@ -14,6 +14,7 @@ const EbookDetail = () => {
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
   const [wishlistId, setWishlistId] = useState(null);
+  const [readingLoading, setReadingLoading] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -48,6 +49,40 @@ const EbookDetail = () => {
       setError('Error adding to wishlist.');
     } finally {
       setWishlistLoading(false);
+    }
+  };
+
+  const handleReadNow = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setError('You must be logged in to read books.');
+      return;
+    }
+
+    setReadingLoading(true);
+    try {
+      // First add the book to reading list
+      const readingResponse = await axios.post(
+        'https://scrollandshelf.pythonanywhere.com/ebooks/add_reading_book/',
+        { book_id: ebookId },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (readingResponse.data.success) {
+        // Then navigate to the reading page
+        navigate(`/read?id=${ebookId}`);
+      } else {
+        setError(readingResponse.data.message || 'Failed to add book to reading list.');
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Error preparing book for reading.');
+    } finally {
+      setReadingLoading(false);
     }
   };
 
@@ -208,11 +243,12 @@ const EbookDetail = () => {
                   <>
                     <motion.button
                       whileHover={{ scale: 1.05 }}
-                      onClick={() => navigate(`/read?id=${ebookId}`)}
-                      className="flex items-center bg-gray-900 text-white px-8 py-3 rounded-lg hover:bg-gray-800"
+                      onClick={handleReadNow}
+                      disabled={readingLoading}
+                      className="flex items-center bg-gray-900 text-white px-8 py-3 rounded-lg hover:bg-gray-800 disabled:bg-gray-500"
                     >
                       <BookOpen className="h-5 w-5 mr-2" />
-                      Read Now
+                      {readingLoading ? 'Preparing...' : 'Read Now'}
                     </motion.button>
                     <motion.a
                       whileHover={{ scale: 1.05 }}
