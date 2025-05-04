@@ -14,7 +14,7 @@ const Navbar = () => {
     { name: "Home", path: "/" },
     { name: "Ebooks", path: "/ebooks" },
     { name: "Categories", path: "/categories" },
-    { name: "Popular", path: "/popular" },
+    { name: "Community", path: "/community" },
     { name: "Request a Book", path: "/request" },
   ];
 
