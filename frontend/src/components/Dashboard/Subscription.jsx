@@ -5,6 +5,7 @@ export default function Subscriptions() {
   const [subscription, setSubscription] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [durationDays, setDurationDays] = useState(30);
 
   const API_BASE_URL = "https://scrollandshelf.pythonanywhere.com/subscriptions/";
   const token = localStorage.getItem("token");
@@ -28,11 +29,47 @@ export default function Subscriptions() {
       if (response.data.success) {
         setSubscription({
           id: response.data.subscription_id,
-          status: response.data.message.includes("already") ? "active" : "pre-booked",
-          message: response.data.message
+          status: response.data.message.includes("already") ? "active" : "created",
+          message: response.data.message,
+          startDate: response.data.start_date,
+          endDate: response.data.end_date
         });
       } else {
         setError(response.data.message || "Failed to fetch subscription");
+      }
+    } catch (err) {
+      handleApiError(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const createSubscription = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      const response = await axios.post(
+        `${API_BASE_URL}pre_book_subscription/`,
+        { duration_days: durationDays },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.data.success) {
+        setSubscription({
+          id: response.data.subscription_id,
+          status: "active",
+          message: response.data.message,
+          startDate: response.data.start_date,
+          endDate: response.data.end_date
+        });
+      } else {
+        setError(response.data.message || "Failed to create subscription");
       }
     } catch (err) {
       handleApiError(err);
@@ -57,6 +94,16 @@ export default function Subscriptions() {
     } else {
       setError("Failed to process request");
     }
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "Not set";
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
   };
 
   useEffect(() => {
@@ -100,22 +147,53 @@ export default function Subscriptions() {
       
       {subscription ? (
         <>
-          <p className="text-gray-700 mb-2">
-            <strong>Status:</strong>{" "}
-            <span className={`capitalize ${subscription.status === "active" ? "text-green-600" : "text-blue-600"}`}>
-              {subscription.status}
-            </span>
-          </p>
-          <p className="text-gray-700 mb-2">
-            <strong>Subscription ID:</strong> {subscription.id}
-          </p>
-          <p className="text-gray-700 mb-4">
-            <strong>Details:</strong> {subscription.message}
-          </p>
+          <div className="space-y-3 mb-4">
+            <p className="text-gray-700">
+              <strong>Status:</strong>{" "}
+              <span className={`capitalize ${subscription.status === "active" ? "text-green-600" : "text-blue-600"}`}>
+                {subscription.status}
+              </span>
+            </p>
+            <p className="text-gray-700">
+              <strong>Subscription ID:</strong> {subscription.id}
+            </p>
+            <p className="text-gray-700">
+              <strong>Start Date:</strong> {formatDate(subscription.startDate)}
+            </p>
+            <p className="text-gray-700">
+              <strong>End Date:</strong> {formatDate(subscription.endDate)}
+            </p>
+            <p className="text-gray-700">
+              <strong>Details:</strong> {subscription.message}
+            </p>
+          </div>
         </>
       ) : (
-        <div className="text-center py-4 text-gray-500">
-          No subscription information available
+        <div className="space-y-4">
+          <div className="text-center py-2 text-gray-500">
+            No active subscription found
+          </div>
+          
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">
+              Subscription Duration (days)
+            </label>
+            <input
+              type="number"
+              min="1"
+              value={durationDays}
+              onChange={(e) => setDurationDays(Math.max(1, parseInt(e.target.value) || 30))}
+              className="w-full border border-gray-300 p-2 rounded-lg"
+            />
+          </div>
+          
+          <button
+            onClick={createSubscription}
+            disabled={isLoading}
+            className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+          >
+            {isLoading ? "Creating..." : "Create Subscription"}
+          </button>
         </div>
       )}
     </div>
