@@ -76,7 +76,7 @@ const SubscriptionSuccess = () => {
 
           {/* Content */}
           <h1 className="text-5xl font-light text-gray-900 mb-6">
-            <span className="font-serif italic">Welcome</span> to the Club!
+            <span className="font-serif ">Welcome to premium</span> 
           </h1>
           
           <motion.div
@@ -91,9 +91,8 @@ const SubscriptionSuccess = () => {
           </motion.div>
 
           <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-            Your premium membership is now active! Dive into our extensive library<br />
-            of curated ebooks and enjoy unlimited literary adventures.
-          </p>
+          Explore boundless shelves of curated reads.<br />
+          Happy Scrolling & Shelving!"</p>
 
           <motion.button
             whileHover={{ scale: 1.05 }}
