@@ -1,60 +1,90 @@
-import { useState, useEffect } from 'react';
-import Skeleton from 'react-loading-skeleton';
-import 'react-loading-skeleton/dist/skeleton.css';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from "react";
+import Skeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 export default function Recommendations() {
   const [recommendations, setRecommendations] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
   const navigate = useNavigate();
+
+  const API_BASE_URL = "https://scrollandshelf.pythonanywhere.com/ebooks/";
+  const token = localStorage.getItem("token");
 
   const fetchRecommendations = async () => {
     try {
-      setLoading(true);
+      setIsLoading(true);
       setError(null);
+      setSuccessMessage(null);
       
-      const token = localStorage.getItem('authToken');
-      
-      // If no token, redirect to login
       if (!token) {
-        navigate('/login');
-        return;
+        throw new Error("No authentication token found");
       }
 
-      const response = await fetch('https://scrollandshelf.pythonanywhere.com/ebooks/recommend_books/', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      const data = await response.json();
-      
-      if (!response.ok) {
-        // Handle token expiration
-        if (response.status === 401) {
-          localStorage.removeItem('authToken');
-          navigate('/login');
-          return;
+      const response = await axios.post(
+        `${API_BASE_URL}recommend_books/`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
         }
-        throw new Error(data.message || 'Failed to fetch recommendations');
-      }
+      );
 
-      setRecommendations(data.recommendations || []);
-      
+      if (response.data.success) {
+        setRecommendations(response.data.recommendations || []);
+      } else {
+        setError(response.data.message || "Failed to fetch recommendations");
+      }
     } catch (err) {
-      console.error('Recommendation error:', err);
-      setError(err.message);
+      handleApiError(err);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
+    }
+  };
+
+  const handleApiError = (err) => {
+    console.error("API Error:", err);
+    
+    if (err.response) {
+      if (err.response.status === 401) {
+        localStorage.removeItem("token");
+        navigate("/login");
+        return;
+      } else {
+        setError(err.response.data?.message || `Server error: ${err.response.status}`);
+      }
+    } else if (err.request) {
+      setError("Network error - please check your connection");
+    } else {
+      setError(err.message || "Failed to process request");
     }
   };
 
   useEffect(() => {
     fetchRecommendations();
   }, []);
+
+  if (isLoading) {
+    return (
+      <div className="bg-white shadow-lg rounded-xl p-6">
+        <h2 className="text-xl font-bold text-gray-800 mb-4">Recommended for You</h2>
+        <div className="flex gap-4 overflow-x-auto pb-2">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="min-w-[120px] flex-shrink-0">
+              <Skeleton height={144} width={96} className="mx-auto rounded-lg" />
+              <Skeleton width={80} className="mx-auto mt-2" />
+              <Skeleton width={60} className="mx-auto mt-1" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   if (error) {
     return (
@@ -77,17 +107,7 @@ export default function Recommendations() {
     <div className="bg-white shadow-lg rounded-xl p-6">
       <h2 className="text-xl font-bold text-gray-800 mb-4">Recommended for You</h2>
       
-      {loading ? (
-        <div className="flex gap-4 overflow-x-auto pb-2">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="min-w-[120px] flex-shrink-0">
-              <Skeleton height={144} width={96} className="mx-auto rounded-lg" />
-              <Skeleton width={80} className="mx-auto mt-2" />
-              <Skeleton width={60} className="mx-auto mt-1" />
-            </div>
-          ))}
-        </div>
-      ) : recommendations.length > 0 ? (
+      {recommendations.length > 0 ? (
         <div className="flex gap-6 overflow-x-auto pb-4 px-1">
           {recommendations.map((book) => (
             <div
@@ -114,7 +134,7 @@ export default function Recommendations() {
         </div>
       ) : (
         <div className="text-center py-6 text-gray-500">
-          No recommendations found. Start reading more books to get personalized suggestions!
+          No recommendations available. Start adding books to your wishlist or reading list!
         </div>
       )}
     </div>
