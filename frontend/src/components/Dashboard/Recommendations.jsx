@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
+import { useNavigate } from 'react-router-dom';
 
 export default function Recommendations() {
   const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   const fetchRecommendations = async () => {
     try {
@@ -13,8 +15,11 @@ export default function Recommendations() {
       setError(null);
       
       const token = localStorage.getItem('authToken');
+      
+      // If no token, redirect to login
       if (!token) {
-        throw new Error('Authentication token not found');
+        navigate('/login');
+        return;
       }
 
       const response = await fetch('https://scrollandshelf.pythonanywhere.com/ebooks/recommend_books/', {
@@ -28,22 +33,17 @@ export default function Recommendations() {
       const data = await response.json();
       
       if (!response.ok) {
-        console.error('API Error:', {
-          status: response.status,
-          data: data
-        });
-        
+        // Handle token expiration
         if (response.status === 401) {
-          throw new Error('Session expired. Please login again.');
+          localStorage.removeItem('authToken');
+          navigate('/login');
+          return;
         }
         throw new Error(data.message || 'Failed to fetch recommendations');
       }
 
-      if (data.success) {
-        setRecommendations(data.recommendations || []);
-      } else {
-        throw new Error(data.message || 'No recommendations available');
-      }
+      setRecommendations(data.recommendations || []);
+      
     } catch (err) {
       console.error('Recommendation error:', err);
       setError(err.message);
@@ -56,10 +56,6 @@ export default function Recommendations() {
     fetchRecommendations();
   }, []);
 
-  const handleRetry = () => {
-    fetchRecommendations();
-  };
-
   if (error) {
     return (
       <div className="bg-white shadow-lg rounded-xl p-6">
@@ -67,10 +63,10 @@ export default function Recommendations() {
         <div className="text-center py-4">
           <p className="text-red-500 mb-3">{error}</p>
           <button
-            onClick={handleRetry}
+            onClick={fetchRecommendations}
             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
           >
-            Retry
+            Try Again
           </button>
         </div>
       </div>
