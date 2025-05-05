@@ -1,4 +1,3 @@
-// components/Dashboard/Recommendations.jsx
 import { useState, useEffect } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
@@ -8,60 +7,71 @@ export default function Recommendations() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchRecommendations = async () => {
-      try {
-        setLoading(true);
-        
-        // Get token from localStorage
-        const token = localStorage.getItem('authToken');
-        
-        const response = await fetch('https://scrollandshelf.pythonanywhere.com/ebooks/recommend_books/', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (!response.ok) {
-          if (response.status === 401) {
-            throw new Error('Session expired. Please refresh the page.');
-          }
-          throw new Error('Failed to fetch recommendations');
-        }
-
-        const data = await response.json();
-        if (data.success) {
-          setRecommendations(data.recommendations);
-        } else {
-          throw new Error(data.message || 'Failed to load recommendations');
-        }
-      } catch (err) {
-        console.error('Recommendation error:', err);
-        setError(err.message);
-      } finally {
-        setLoading(false);
+  const fetchRecommendations = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        throw new Error('Authentication token not found');
       }
-    };
 
+      const response = await fetch('https://scrollandshelf.pythonanywhere.com/ebooks/recommend_books/', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        console.error('API Error:', {
+          status: response.status,
+          data: data
+        });
+        
+        if (response.status === 401) {
+          throw new Error('Session expired. Please login again.');
+        }
+        throw new Error(data.message || 'Failed to fetch recommendations');
+      }
+
+      if (data.success) {
+        setRecommendations(data.recommendations || []);
+      } else {
+        throw new Error(data.message || 'No recommendations available');
+      }
+    } catch (err) {
+      console.error('Recommendation error:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchRecommendations();
   }, []);
+
+  const handleRetry = () => {
+    fetchRecommendations();
+  };
 
   if (error) {
     return (
       <div className="bg-white shadow-lg rounded-xl p-6">
         <h2 className="text-xl font-bold text-gray-800 mb-4">Recommended for You</h2>
-        <div className="text-red-500 text-center py-4">
-          {error}
-          {error.includes('expired') && (
-            <button 
-              onClick={() => window.location.reload()}
-              className="ml-2 text-blue-600 underline"
-            >
-              Refresh
-            </button>
-          )}
+        <div className="text-center py-4">
+          <p className="text-red-500 mb-3">{error}</p>
+          <button
+            onClick={handleRetry}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          >
+            Retry
+          </button>
         </div>
       </div>
     );
@@ -108,7 +118,7 @@ export default function Recommendations() {
         </div>
       ) : (
         <div className="text-center py-6 text-gray-500">
-          No recommendations available. Start adding books to your wishlist or reading list!
+          No recommendations found. Start reading more books to get personalized suggestions!
         </div>
       )}
     </div>
