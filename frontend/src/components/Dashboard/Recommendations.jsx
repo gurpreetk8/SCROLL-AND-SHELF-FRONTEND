@@ -13,11 +13,8 @@ export default function Recommendations() {
       try {
         setLoading(true);
         
-        // Get token from localStorage instead of AuthContext
+        // Get token from localStorage
         const token = localStorage.getItem('authToken');
-        if (!token) {
-          throw new Error('Please login to get recommendations');
-        }
         
         const response = await fetch('https://scrollandshelf.pythonanywhere.com/ebooks/recommend_books/', {
           method: 'POST',
@@ -28,10 +25,8 @@ export default function Recommendations() {
         });
 
         if (!response.ok) {
-          // Handle 401 unauthorized
           if (response.status === 401) {
-            localStorage.removeItem('authToken');
-            throw new Error('Session expired. Please login again.');
+            throw new Error('Session expired. Please refresh the page.');
           }
           throw new Error('Failed to fetch recommendations');
         }
@@ -51,7 +46,7 @@ export default function Recommendations() {
     };
 
     fetchRecommendations();
-  }, []); // Removed user dependency
+  }, []);
 
   if (error) {
     return (
@@ -59,8 +54,13 @@ export default function Recommendations() {
         <h2 className="text-xl font-bold text-gray-800 mb-4">Recommended for You</h2>
         <div className="text-red-500 text-center py-4">
           {error}
-          {error.includes('login') && (
-            <a href="/login" className="ml-2 text-blue-600 underline">Login</a>
+          {error.includes('expired') && (
+            <button 
+              onClick={() => window.location.reload()}
+              className="ml-2 text-blue-600 underline"
+            >
+              Refresh
+            </button>
           )}
         </div>
       </div>
@@ -108,9 +108,7 @@ export default function Recommendations() {
         </div>
       ) : (
         <div className="text-center py-6 text-gray-500">
-          {localStorage.getItem('authToken') 
-            ? "No recommendations available. Start adding books to your wishlist or reading list!"
-            : "Please login to view personalized recommendations"}
+          No recommendations available. Start adding books to your wishlist or reading list!
         </div>
       )}
     </div>
