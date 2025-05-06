@@ -1,141 +1,97 @@
-import { useState, useEffect } from "react";
-import Skeleton from "react-loading-skeleton";
-import "react-loading-skeleton/dist/skeleton.css";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+import Skeleton from 'react-loading-skeleton';
+import 'react-loading-skeleton/dist/skeleton.css';
 
 export default function Recommendations() {
   const [recommendations, setRecommendations] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [successMessage, setSuccessMessage] = useState(null);
-  const navigate = useNavigate();
-
-  const API_BASE_URL = "https://scrollandshelf.pythonanywhere.com/ebooks/";
-  const token = localStorage.getItem("token");
 
   const fetchRecommendations = async () => {
     try {
-      setIsLoading(true);
+      setLoading(true);
       setError(null);
-      setSuccessMessage(null);
+      const token = localStorage.getItem('token');
       
       if (!token) {
-        throw new Error("No authentication token found");
+        throw new Error('Please login to view recommendations.');
       }
 
       const response = await axios.post(
-        `${API_BASE_URL}recommend_books/`,
+        'https://scrollandshelf.pythonanywhere.com/ebooks/recommend_books/',
         {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      if (response.data.success) {
-        setRecommendations(response.data.recommendations || []);
-      } else {
-        setError(response.data.message || "Failed to fetch recommendations");
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'API returned unsuccessful response');
       }
+
+      setRecommendations(response.data.recommendations || []);
     } catch (err) {
-      handleApiError(err);
+      console.error('API Error:', err);
+      setError(
+        err.response?.data?.message || 
+        err.message || 
+        'Failed to load recommendations'
+      );
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  const handleApiError = (err) => {
-    console.error("API Error:", err);
-    
-    if (err.response) {
-      if (err.response.status === 401) {
-        localStorage.removeItem("token");
-        navigate("/login");
-        return;
-      } else {
-        setError(err.response.data?.message || `Server error: ${err.response.status}`);
-      }
-    } else if (err.request) {
-      setError("Network error - please check your connection");
-    } else {
-      setError(err.message || "Failed to process request");
-    }
-  };
-
-  useEffect(() => {
-    fetchRecommendations();
-  }, []);
-
-  if (isLoading) {
-    return (
-      <div className="bg-white shadow-lg rounded-xl p-6">
-        <h2 className="text-xl font-bold text-gray-800 mb-4">Recommended for You</h2>
-        <div className="flex gap-4 overflow-x-auto pb-2">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="min-w-[120px] flex-shrink-0">
-              <Skeleton height={144} width={96} className="mx-auto rounded-lg" />
-              <Skeleton width={80} className="mx-auto mt-2" />
-              <Skeleton width={60} className="mx-auto mt-1" />
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
+  useEffect(() => { fetchRecommendations(); }, []);
 
   if (error) {
     return (
-      <div className="bg-white shadow-lg rounded-xl p-6">
-        <h2 className="text-xl font-bold text-gray-800 mb-4">Recommended for You</h2>
-        <div className="text-center py-4">
-          <p className="text-red-500 mb-3">{error}</p>
-          <button
-            onClick={fetchRecommendations}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-          >
-            Try Again
-          </button>
-        </div>
+      <div className="bg-white p-6 rounded-xl shadow-md">
+        <h2 className="text-xl font-bold mb-4">Recommended for You</h2>
+        <div className="text-red-500 mb-4">{error}</div>
+        <button
+          onClick={fetchRecommendations}
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          Retry
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="bg-white shadow-lg rounded-xl p-6">
-      <h2 className="text-xl font-bold text-gray-800 mb-4">Recommended for You</h2>
+    <div className="bg-white p-6 rounded-xl shadow-md">
+      <h2 className="text-xl font-bold mb-4">Recommended for You</h2>
       
-      {recommendations.length > 0 ? (
-        <div className="flex gap-6 overflow-x-auto pb-4 px-1">
+      {loading ? (
+        <div className="flex gap-4">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="min-w-[120px]">
+              <Skeleton height={144} width={96} className="rounded-lg" />
+              <Skeleton width={80} className="mt-2" />
+              <Skeleton width={60} className="mt-1" />
+            </div>
+          ))}
+        </div>
+      ) : recommendations.length > 0 ? (
+        <div className="flex gap-4 overflow-x-auto pb-2">
           {recommendations.map((book) => (
-            <div
-              key={book.id}
-              className="min-w-[120px] flex-shrink-0 text-center transform transition-transform hover:scale-105"
-            >
+            <div key={book.id} className="min-w-[120px] text-center">
               <img
-                src={book.cover || `https://via.placeholder.com/100x150?text=${encodeURIComponent(book.title.substring(0, 10))}`}
+                src={book.cover_url || `https://via.placeholder.com/100x150?text=No+Cover`}
                 alt={book.title}
-                className="w-24 h-36 object-cover rounded-lg shadow-md mx-auto"
-                onError={(e) => {
-                  e.target.src = `https://via.placeholder.com/100x150?text=${encodeURIComponent(book.title.substring(0, 10))}`;
-                }}
+                className="w-24 h-36 object-cover rounded-lg mx-auto"
               />
-              <h3 className="text-sm font-semibold mt-2 text-gray-800 line-clamp-2">{book.title}</h3>
-              <p className="text-xs text-gray-500 mt-1">{book.author}</p>
-              {book.reason && (
-                <span className="inline-block mt-1 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
-                  {book.reason}
-                </span>
-              )}
+              <h3 className="text-sm font-semibold mt-2 line-clamp-2">
+                {book.title}
+              </h3>
+              <p className="text-xs text-gray-500">{book.author}</p>
             </div>
           ))}
         </div>
       ) : (
-        <div className="text-center py-6 text-gray-500">
-          No recommendations available. Start adding books to your wishlist or reading list!
-        </div>
+        <p className="text-gray-500 text-center py-6">
+          No recommendations found. Add books to your wishlist!
+        </p>
       )}
     </div>
   );
