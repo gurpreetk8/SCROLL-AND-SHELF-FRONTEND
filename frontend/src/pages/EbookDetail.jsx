@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import axios from 'axios';
-import { BookOpen, Download, ArrowLeft, Bookmark, Share2, Star } from 'lucide-react';
+import { BookOpen, Download, ArrowLeft, Bookmark, Star } from 'lucide-react';
 import Footer from '../components/HomePage/Footer';
 import Navbar from '../components/HomePage/Navbar';
 import ReviewRating from '../components/EbookDetails/ReviewRating';
@@ -279,37 +279,11 @@ const EbookDetail = () => {
                     className={`h-5 w-5 ${isInWishlist ? 'text-amber-600 fill-amber-600' : 'text-gray-600'}`} 
                   />
                 </motion.button>
-                <button className="p-3 rounded-full border border-gray-200 hover:border-gray-300">
-                  <Share2 className="h-5 w-5 text-gray-600" />
-                </button>
               </div>
             </motion.div>
           </div>
         </div>
       </motion.header>
-
-      {/* Sample Images Gallery */}
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-6">
-          <h2 className="text-2xl font-medium text-gray-900 mb-8">Preview Pages</h2>
-          <div className="flex overflow-x-auto pb-6 space-x-4 scrollbar-hide">
-            {ebook.sample_images?.map((image, index) => (
-              <motion.div
-                key={index}
-                whileHover={{ scale: 1.02 }}
-                className="flex-shrink-0 relative w-64 h-96 bg-gray-100 rounded-xl overflow-hidden cursor-pointer"
-              >
-                <img
-                  src={`https://scrollandshelf.pythonanywhere.com/${image}`}
-                  alt={`Sample ${index + 1}`}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* Reviews and Ratings */}
       <section className="py-10 bg-gray-50">
