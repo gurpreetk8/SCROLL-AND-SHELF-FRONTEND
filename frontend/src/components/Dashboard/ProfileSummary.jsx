@@ -42,8 +42,11 @@ const ProfileSummary = () => {
           phone_number: response.data.user_details.phone_number || "",
           username: response.data.user_details.username || ""
         });
+        // Use the full URL directly from the backend
         if (response.data.user_details.profile_picture) {
-          setPreviewImage(`${API_BASE_URL}${response.data.user_details.profile_picture}`);
+          setPreviewImage(response.data.user_details.profile_picture);
+        } else {
+          setPreviewImage("/default-avatar.png");
         }
       } else {
         setError(response.data.message || "Failed to fetch user data");
@@ -90,7 +93,8 @@ const ProfileSummary = () => {
 
       if (response.data.success) {
         setUserData(response.data.user_details);
-        setPreviewImage(`${API_BASE_URL}${response.data.user_details.profile_picture}`);
+        // Use the full URL directly from the backend response
+        setPreviewImage(response.data.user_details.profile_picture);
         setSuccessMessage("Profile picture updated successfully!");
       } else {
         setError(response.data.message || "Failed to update profile picture");
@@ -230,9 +234,12 @@ const ProfileSummary = () => {
         <div className="flex flex-col items-center space-y-4">
           <div className="relative">
             <img
-              src={previewImage || "/default-avatar.png"}
+              src={previewImage}
               alt="Profile"
               className="w-32 h-32 rounded-full border-2 border-white shadow object-cover"
+              onError={(e) => {
+                e.target.src = "/default-avatar.png";
+              }}
             />
             {editMode && (
               <label className="absolute -bottom-2 -right-2 bg-gray-800 text-white p-2 rounded-full shadow hover:bg-gray-700 transition-colors cursor-pointer">
@@ -362,7 +369,7 @@ const ProfileSummary = () => {
                       setEditMode(false);
                       setError(null);
                       setProfilePicture(null);
-                      setPreviewImage(userData.profile_picture ? `${API_BASE_URL}${userData.profile_picture}` : "");
+                      setPreviewImage(userData.profile_picture || "/default-avatar.png");
                     }}
                     className="px-5 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
                   >
