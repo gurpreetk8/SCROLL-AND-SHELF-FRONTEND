@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Skeleton from 'react-loading-skeleton';
+import { FiHeart, FiStar } from 'react-icons/fi';
 
 export default function Recommendations() {
   const [state, setState] = useState({
@@ -9,94 +10,110 @@ export default function Recommendations() {
     recommendations: []
   });
 
-  const fetchRecommendations = async () => {
+  const fetchRecommendations = async (retryCount = 0) => {
     try {
-      setState({ loading: true, error: null, recommendations: [] });
+      setState(prev => ({ ...prev, loading: true, error: null }));
       
       const token = localStorage.getItem('token');
       if (!token) throw new Error('Please login first');
 
-      const response = await axios.post(
+      const { data } = await axios.post(
         'https://scrollandshelf.pythonanywhere.com/ebooks/recommend_books/',
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      if (!response.data.success) {
-        throw new Error(response.data.message || 'Failed to load recommendations');
-      }
+      if (!data.success) throw new Error(data.message);
 
       setState({
         loading: false,
         error: null,
-        recommendations: response.data.recommendations
+        recommendations: data.recommendations.map(book => ({
+          ...book,
+          // Add random rating for UI (replace with actual rating from API if available)
+          rating: Math.random() * 2 + 3 // 3-5 stars
+        }))
       });
 
     } catch (error) {
-      setState({
-        loading: false,
-        error: error.response?.data?.message || error.message,
-        recommendations: []
-      });
+      if (retryCount < 1) {
+        setTimeout(() => fetchRecommendations(retryCount + 1), 2000);
+      } else {
+        setState({
+          loading: false,
+          error: error.response?.data?.message || error.message,
+          recommendations: []
+        });
+      }
     }
   };
 
   useEffect(() => { fetchRecommendations(); }, []);
 
+  const addToWishlist = async (bookId) => {
+    // Implement your wishlist API call here
+    console.log('Added to wishlist:', bookId);
+  };
+
   if (state.error) {
     return (
-      <div className="bg-white p-4 rounded-lg shadow">
-        <h2 className="text-xl font-bold mb-2">Recommended For You</h2>
-        <p className="text-red-500 mb-2">{state.error}</p>
-        <button 
-          onClick={fetchRecommendations}
-          className="px-3 py-1 bg-blue-500 text-white rounded"
+      <div className="bg-white p-6 rounded-xl shadow-md">
+        <h2 className="text-xl font-bold mb-3">Recommended For You</h2>
+        <div className="text-red-500 mb-4">{state.error}</div>
+        <button
+          onClick={() => fetchRecommendations()}
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
         >
-          Retry
+          Try Again
         </button>
       </div>
     );
   }
 
-  if (state.loading) {
-    return (
-      <div className="bg-white p-4 rounded-lg shadow">
-        <h2 className="text-xl font-bold mb-4">Recommended For You</h2>
-        <div className="flex space-x-4">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="w-24">
-              <Skeleton height={144} />
-              <Skeleton width={80} className="mt-2" />
-              <Skeleton width={60} />
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="bg-white p-4 rounded-lg shadow">
+    <div className="bg-white p-6 rounded-xl shadow-md">
       <h2 className="text-xl font-bold mb-4">Recommended For You</h2>
       
-      {state.recommendations.length > 0 ? (
-        <div className="flex space-x-4 overflow-x-auto pb-2">
-          {state.recommendations.map(book => (
-            <div key={book.id} className="flex-shrink-0 w-24 text-center">
-              <img
-                src={book.cover_image || '/placeholder-book.png'}
-                alt={book.title}
-                className="w-full h-36 object-cover rounded"
-              />
-              <h3 className="text-sm font-medium mt-1 line-clamp-2">{book.title}</h3>
-              <p className="text-xs text-gray-500">{book.author}</p>
+      {state.loading ? (
+        <div className="flex gap-4 overflow-x-auto pb-2">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="flex-shrink-0 w-32">
+              <Skeleton height={160} className="rounded-lg mb-2" />
+              <Skeleton width={100} className="mb-1" />
+              <Skeleton width={80} />
             </div>
           ))}
         </div>
       ) : (
-        <p className="text-gray-500 py-4 text-center">
-          No recommendations available. Try adding books to your wishlist!
-        </p>
+        <div className="flex gap-4 overflow-x-auto pb-4">
+          {state.recommendations.map(book => (
+            <div 
+              key={book.id} 
+              className="flex-shrink-0 w-32 transition-transform hover:scale-105"
+            >
+              <div className="relative">
+                <img
+                  src={book.cover_image || '/default-book.png'}
+                  alt={book.title}
+                  className="w-full h-40 object-cover rounded-lg shadow"
+                />
+                <button 
+                  onClick={() => addToWishlist(book.id)}
+                  className="absolute top-2 right-2 p-2 bg-white/80 rounded-full hover:bg-red-100"
+                  aria-label="Add to wishlist"
+                >
+                  <FiHeart className="text-gray-600 hover:text-red-500" />
+                </button>
+              </div>
+              <h3 className="text-sm font-semibold mt-2 line-clamp-2">{book.title}</h3>
+              <p className="text-xs text-gray-500 mb-1">{book.author}</p>
+              <div className="flex items-center text-xs text-yellow-500">
+                <FiStar className="fill-current" />
+                <span className="ml-1 text-gray-600">{book.rating.toFixed(1)}</span>
+              </div>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
