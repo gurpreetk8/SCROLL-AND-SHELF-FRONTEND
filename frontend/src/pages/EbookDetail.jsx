@@ -16,6 +16,8 @@ const EbookDetail = () => {
   const [wishlistId, setWishlistId] = useState(null);
   const [readingLoading, setReadingLoading] = useState(false);
   const [ratings, setRatings] = useState({ average: 0, count: 0 });
+  const [showWishlistText, setShowWishlistText] = useState(false);
+  const [isReading, setIsReading] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -47,6 +49,31 @@ const EbookDetail = () => {
     }
   };
 
+  const checkReadingStatus = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    try {
+      const response = await axios.post(
+        'https://scrollandshelf.pythonanywhere.com/ebooks/get_reading_books/',
+        {},
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        const isCurrentlyReading = response.data.books.some(book => book.id.toString() === ebookId);
+        setIsReading(isCurrentlyReading);
+      }
+    } catch (err) {
+      console.error('Error checking reading status:', err);
+    }
+  };
+
   const handleAddToWishlist = async () => {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -70,6 +97,8 @@ const EbookDetail = () => {
       if (response.data.success) {
         setIsInWishlist(true);
         setWishlistId(response.data.wishlist_id);
+        setShowWishlistText(true);
+        setTimeout(() => setShowWishlistText(false), 3000);
       }
     } catch (err) {
       setError('Error adding to wishlist.');
@@ -154,6 +183,7 @@ const EbookDetail = () => {
           setEbook(response.data.ebook);
           await checkWishlistStatus();
           await fetchBookReviews();
+          await checkReadingStatus();
         } else {
           setError(response.data.message || 'Failed to fetch ebook details.');
         }
@@ -181,7 +211,6 @@ const EbookDetail = () => {
 
   if (!ebook) return null;
 
-  // Function to render star ratings
   const renderStars = (rating) => {
     const stars = [];
     const fullStars = Math.floor(rating);
@@ -290,7 +319,7 @@ const EbookDetail = () => {
                       className="flex items-center bg-gray-900 text-white px-8 py-3 rounded-lg hover:bg-gray-800 disabled:bg-gray-500"
                     >
                       <BookOpen className="h-5 w-5 mr-2" />
-                      {readingLoading ? 'Preparing...' : 'Read Now'}
+                      {readingLoading ? 'Loading...' : isReading ? 'Continue Reading' : 'Read Now'}
                     </motion.button>
                     <motion.a
                       whileHover={{ scale: 1.05 }}
@@ -322,7 +351,7 @@ const EbookDetail = () => {
                       className={`h-5 w-5 ${isInWishlist ? 'text-amber-600 fill-amber-600' : 'text-gray-600'}`} 
                     />
                   </motion.button>
-                  {isInWishlist && (
+                  {showWishlistText && (
                     <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded whitespace-nowrap">
                       Added to wishlist
                     </div>
