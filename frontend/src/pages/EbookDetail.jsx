@@ -15,11 +15,37 @@ const EbookDetail = () => {
   const [wishlistLoading, setWishlistLoading] = useState(false);
   const [wishlistId, setWishlistId] = useState(null);
   const [readingLoading, setReadingLoading] = useState(false);
+  const [ratings, setRatings] = useState({ average: 0, count: 0 });
   const location = useLocation();
   const navigate = useNavigate();
 
   const queryParams = new URLSearchParams(location.search);
   const ebookId = queryParams.get('id');
+
+  const fetchBookReviews = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post(
+        'https://scrollandshelf.pythonanywhere.com/ebooks/get_book_reviews/',
+        { ebook_id: ebookId },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        setRatings({
+          average: response.data.average_rating,
+          count: response.data.total_reviews
+        });
+      }
+    } catch (err) {
+      console.error('Error fetching reviews:', err);
+    }
+  };
 
   const handleAddToWishlist = async () => {
     const token = localStorage.getItem('token');
@@ -61,10 +87,9 @@ const EbookDetail = () => {
 
     setReadingLoading(true);
     try {
-      // First add the book to reading list
       const readingResponse = await axios.post(
         'https://scrollandshelf.pythonanywhere.com/ebooks/add_reading_book/',
-        { id: ebookId },  // Changed from book_id to id to match API expectation
+        { id: ebookId },
         {
           headers: {
             'Content-Type': 'application/json',
@@ -74,7 +99,6 @@ const EbookDetail = () => {
       );
 
       if (readingResponse.data.success) {
-        // Then navigate to the reading page
         navigate(`/read?id=${ebookId}`);
       } else {
         setError(readingResponse.data.message || 'Failed to add book to reading list.');
@@ -128,8 +152,8 @@ const EbookDetail = () => {
 
         if (response.data.success) {
           setEbook(response.data.ebook);
-          // Check wishlist status after ebook details are loaded
           await checkWishlistStatus();
+          await fetchBookReviews();
         } else {
           setError(response.data.message || 'Failed to fetch ebook details.');
         }
@@ -156,6 +180,24 @@ const EbookDetail = () => {
   );
 
   if (!ebook) return null;
+
+  // Function to render star ratings
+  const renderStars = (rating) => {
+    const stars = [];
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 >= 0.5;
+
+    for (let i = 1; i <= 5; i++) {
+      if (i <= fullStars) {
+        stars.push(<Star key={i} className="h-5 w-5 fill-current text-amber-400" />);
+      } else if (i === fullStars + 1 && hasHalfStar) {
+        stars.push(<Star key={i} className="h-5 w-5 fill-current text-amber-400" />);
+      } else {
+        stars.push(<Star key={i} className="h-5 w-5 text-amber-400" />);
+      }
+    }
+    return stars;
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -206,11 +248,11 @@ const EbookDetail = () => {
 
               <div className="flex items-center space-x-4 mb-8">
                 <div className="flex items-center text-amber-400">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-5 w-5 fill-current" />
-                  ))}
+                  {renderStars(ratings.average)}
                 </div>
-                <span className="text-gray-600">(4.8/5 from 1.2k reviews)</span>
+                <span className="text-gray-600">
+                  ({ratings.average.toFixed(1)}/5 from {ratings.count} reviews)
+                </span>
               </div>
 
               <p className="text-lg font-light text-gray-600 leading-relaxed mb-8">
@@ -269,16 +311,23 @@ const EbookDetail = () => {
                     Subscribe to Access
                   </motion.button>
                 )}
-                <motion.button 
-                  whileHover={{ scale: 1.1 }}
-                  onClick={handleAddToWishlist}
-                  disabled={wishlistLoading || isInWishlist}
-                  className={`p-3 rounded-full border ${isInWishlist ? 'bg-amber-100 border-amber-300' : 'border-gray-200 hover:border-gray-300'}`}
-                >
-                  <Bookmark 
-                    className={`h-5 w-5 ${isInWishlist ? 'text-amber-600 fill-amber-600' : 'text-gray-600'}`} 
-                  />
-                </motion.button>
+                <div className="relative group">
+                  <motion.button 
+                    whileHover={{ scale: 1.1 }}
+                    onClick={handleAddToWishlist}
+                    disabled={wishlistLoading || isInWishlist}
+                    className={`p-3 rounded-full border ${isInWishlist ? 'bg-amber-100 border-amber-300' : 'border-gray-200 hover:border-gray-300'}`}
+                  >
+                    <Bookmark 
+                      className={`h-5 w-5 ${isInWishlist ? 'text-amber-600 fill-amber-600' : 'text-gray-600'}`} 
+                    />
+                  </motion.button>
+                  {isInWishlist && (
+                    <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded whitespace-nowrap">
+                      Added to wishlist
+                    </div>
+                  )}
+                </div>
               </div>
             </motion.div>
           </div>
