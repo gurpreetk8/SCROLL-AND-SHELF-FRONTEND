@@ -2,20 +2,23 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import { BookOpen, X, Menu, ChevronDown, ArrowRight } from "lucide-react";
+import { BookOpen, X, Menu, ChevronDown, ArrowRight, Search } from "lucide-react";
+import axios from "axios";
 
 const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [showSearchResults, setShowSearchResults] = useState(false);
   
   const navLinks = [
     { name: "Home", path: "/" },
     { name: "Ebooks", path: "/ebooks" },
     { name: "Categories", path: "/categories" },
     { name: "Community", path: "/community" },
-    { name: "Request a Book", path: "/request" },
   ];
 
   useEffect(() => {
@@ -46,6 +49,25 @@ const Navbar = () => {
       draggable: true,
     });
     setTimeout(() => (window.location.href = "/"), 2000);
+  };
+
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
+
+    try {
+      const response = await axios.get(`/ebooks/book_search/?title=${searchQuery}`);
+      setSearchResults(response.data.results);
+      setShowSearchResults(true);
+    } catch (error) {
+      toast.error("Failed to search books");
+      console.error("Search error:", error);
+    }
+  };
+
+  const closeSearchResults = () => {
+    setShowSearchResults(false);
+    setSearchQuery("");
   };
 
   return (
@@ -86,6 +108,72 @@ const Navbar = () => {
                 </motion.div>
               </Link>
             ))}
+
+            {/* Search Bar */}
+            <div className="relative">
+              <form onSubmit={handleSearch} className="flex items-center">
+                <input
+                  type="text"
+                  placeholder="Search books..."
+                  className="border border-gray-300 rounded-sm px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-400 w-64"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <button
+                  type="submit"
+                  className="ml-2 p-2 text-gray-600 hover:text-gray-900"
+                >
+                  <Search className="h-5 w-5" />
+                </button>
+              </form>
+
+              {/* Search Results Dropdown */}
+              {showSearchResults && searchResults.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="absolute right-0 mt-2 w-96 bg-white rounded-sm shadow-xl border border-gray-100 max-h-96 overflow-y-auto z-50"
+                >
+                  <div className="p-2">
+                    <div className="flex justify-between items-center px-2 py-1 border-b border-gray-100">
+                      <h3 className="text-sm font-medium">Search Results</h3>
+                      <button
+                        onClick={closeSearchResults}
+                        className="text-gray-400 hover:text-gray-600"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <div className="divide-y divide-gray-100">
+                      {searchResults.map((book) => (
+                        <Link
+                          key={book.id}
+                          to={`/ebook/${book.id}`}
+                          onClick={closeSearchResults}
+                          className="block px-3 py-3 hover:bg-gray-50"
+                        >
+                          <div className="flex items-center space-x-3">
+                            <img
+                              src={book.cover_image}
+                              alt={book.title}
+                              className="h-12 w-9 object-cover rounded-sm"
+                            />
+                            <div>
+                              <h4 className="text-sm font-medium text-gray-900">
+                                {book.title}
+                              </h4>
+                              <p className="text-xs text-gray-500">
+                                {book.author}
+                              </p>
+                            </div>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </div>
 
             {isLoggedIn ? (
               <div className="relative">
@@ -163,6 +251,26 @@ const Navbar = () => {
                 </motion.div>
               </Link>
             ))}
+
+            {/* Mobile Search */}
+            <div className="px-3 py-2">
+              <form onSubmit={handleSearch} className="flex items-center">
+                <input
+                  type="text"
+                  placeholder="Search books..."
+                  className="border border-gray-300 rounded-sm px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-400 flex-grow"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <button
+                  type="submit"
+                  className="ml-2 p-2 text-gray-600 hover:text-gray-900"
+                >
+                  <Search className="h-5 w-5" />
+                </button>
+              </form>
+            </div>
+
             {isLoggedIn ? (
               <div className="space-y-2 mt-2">
                 <Link to="/dashboard">
