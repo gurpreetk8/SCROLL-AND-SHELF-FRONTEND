@@ -192,7 +192,7 @@ const Navbar = () => {
                         {searchResults.map((book) => (
                           <Link
                             key={book.id}
-                            to={`/ebook-detail/${book.id}`}
+                            to={`/ebook-detail/`}
                             onClick={closeSearchResults}
                             className="block px-3 py-3 hover:bg-gray-50"
                           >
