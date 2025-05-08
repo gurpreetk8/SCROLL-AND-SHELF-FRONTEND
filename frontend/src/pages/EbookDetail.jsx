@@ -74,6 +74,33 @@ const EbookDetail = () => {
     }
   };
 
+  const checkWishlistStatus = async () => {
+    const token = localStorage.getItem('token');
+    if (!token || !ebookId) return;
+
+    try {
+      const response = await axios.post(
+        'https://scrollandshelf.pythonanywhere.com/ebooks/check_wishlist_status/',
+        { ebook_id: ebookId },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        setIsInWishlist(response.data.is_in_wishlist);
+        if (response.data.is_in_wishlist) {
+          setWishlistId(response.data.wishlist_id);
+        }
+      }
+    } catch (err) {
+      console.error('Error checking wishlist status:', err);
+    }
+  };
+
   const handleAddToWishlist = async () => {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -136,19 +163,6 @@ const EbookDetail = () => {
       setError(err.response?.data?.message || 'Error preparing book for reading.');
     } finally {
       setReadingLoading(false);
-    }
-  };
-
-  const checkWishlistStatus = async () => {
-    const token = localStorage.getItem('token');
-    if (!token || !ebookId) return;
-
-    try {
-      // You might want to add an API endpoint to check wishlist status
-      // For now, we'll assume the bookmark button shows the visual state only
-      // and the actual check would be done via a separate API call
-    } catch (err) {
-      console.error('Error checking wishlist status:', err);
     }
   };
 
@@ -232,7 +246,6 @@ const EbookDetail = () => {
     <div className="min-h-screen bg-white">
       <Navbar />
 
-      {/* Book Header */}
       <motion.header
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -248,7 +261,6 @@ const EbookDetail = () => {
           </button>
 
           <div className="grid lg:grid-cols-2 gap-16">
-            {/* Book Cover */}
             <motion.div
               initial={{ x: -50, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
@@ -264,7 +276,6 @@ const EbookDetail = () => {
               </div>
             </motion.div>
 
-            {/* Book Details */}
             <motion.div
               initial={{ x: 50, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
@@ -288,7 +299,6 @@ const EbookDetail = () => {
                 {ebook.description}
               </p>
 
-              {/* Tags Section */}
               <div className="mb-8">
                 <h3 className="text-sm font-medium text-gray-500 mb-2"></h3>
                 <div className="flex flex-wrap gap-2">
@@ -308,7 +318,6 @@ const EbookDetail = () => {
                 </div>
               </div>
 
-              {/* Action Buttons */}
               <div className="flex items-center space-x-4">
                 {ebook.file_url ? (
                   <>
@@ -363,7 +372,6 @@ const EbookDetail = () => {
         </div>
       </motion.header>
 
-      {/* Reviews and Ratings */}
       <section className="py-10 bg-gray-50">
         <div className="max-w-7xl mx-auto px-6">
           <ReviewRating ebookId={ebook.id} />
