@@ -30,8 +30,9 @@ export default function Recommendations() {
         error: null,
         recommendations: data.recommendations.map(book => ({
           ...book,
-          // Add random rating for UI (replace with actual rating from API if available)
-          rating: Math.random() * 2 + 3 // 3-5 stars
+          // Use actual rating from API
+          rating: book.avg_rating || 0,
+          ratingCount: book.rating_count || 0
         }))
       });
 
@@ -51,8 +52,16 @@ export default function Recommendations() {
   useEffect(() => { fetchRecommendations(); }, []);
 
   const addToWishlist = async (bookId) => {
-    // Implement your wishlist API call here
-    console.log('Added to wishlist:', bookId);
+    try {
+      await axios.post(
+        'https://scrollandshelf.pythonanywhere.com/ebooks/add_to_wishlist/',
+        { ebook_id: bookId },
+        { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+      );
+      fetchRecommendations(); // Refresh recommendations after adding
+    } catch (error) {
+      console.error('Wishlist error:', error);
+    }
   };
 
   if (state.error) {
@@ -93,9 +102,12 @@ export default function Recommendations() {
             >
               <div className="relative">
                 <img
-                  src={book.cover_image || '/default-book.png'}
+                  src={book.cover_url || '/default-book.png'}
                   alt={book.title}
                   className="w-full h-40 object-cover rounded-lg shadow"
+                  onError={(e) => {
+                    e.target.src = '/default-book.png';
+                  }}
                 />
                 <button 
                   onClick={() => addToWishlist(book.id)}
@@ -109,7 +121,9 @@ export default function Recommendations() {
               <p className="text-xs text-gray-500 mb-1">{book.author}</p>
               <div className="flex items-center text-xs text-yellow-500">
                 <FiStar className="fill-current" />
-                <span className="ml-1 text-gray-600">{book.rating.toFixed(1)}</span>
+                <span className="ml-1 text-gray-600">
+                  {book.rating.toFixed(1)} ({book.ratingCount})
+                </span>
               </div>
             </div>
           ))}
