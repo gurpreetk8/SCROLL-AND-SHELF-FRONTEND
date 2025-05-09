@@ -2,15 +2,21 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiHeart, FiStar, FiClock } from "react-icons/fi";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 export default function Recommendations() {
   const [recommendations, setRecommendations] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
+  const navigate = useNavigate();
   
   const API_BASE_URL = "https://scrollandshelf.pythonanywhere.com/ebooks/";
   const token = localStorage.getItem("token");
+
+  const handleBookClick = (ebookId) => {
+    navigate(`/ebook-detail?id=${ebookId}`);
+  };
 
   const fetchRecommendations = async (retryCount = 0) => {
     try {
@@ -51,7 +57,8 @@ export default function Recommendations() {
     }
   };
 
-  const addToWishlist = async (ebookId) => {
+  const addToWishlist = async (ebookId, e) => {
+    e.stopPropagation(); // Prevent triggering the book click
     try {
       setIsLoading(true);
       setError(null);
@@ -70,8 +77,6 @@ export default function Recommendations() {
       if (response.data.success) {
         setSuccessMessage(response.data.message || "Added to wishlist");
         setTimeout(() => setSuccessMessage(null), 3000);
-        // Optionally refresh recommendations after adding
-        // fetchRecommendations();
       } else {
         setError(response.data.message || "Failed to add to wishlist");
       }
@@ -198,7 +203,8 @@ export default function Recommendations() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.3 }}
-                    className="group flex items-start justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors"
+                    className="group flex items-start justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer"
+                    onClick={() => handleBookClick(book.id)}
                   >
                     <div className="flex items-start">
                       <img 
@@ -223,7 +229,7 @@ export default function Recommendations() {
                       </div>
                     </div>
                     <button
-                      onClick={() => addToWishlist(book.id)}
+                      onClick={(e) => addToWishlist(book.id, e)}
                       disabled={isLoading}
                       className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors opacity-0 group-hover:opacity-100"
                       title="Add to wishlist"
