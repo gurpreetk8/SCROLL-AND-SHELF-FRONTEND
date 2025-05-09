@@ -82,7 +82,7 @@ export default function MyLibrary() {
 
   if (isLoading) {
     return (
-      <div className="bg-gradient-to-br from-white to-gray-50 rounded-3xl shadow-xl p-8 border border-gray-100">
+      <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100">
         <div className="flex items-center mb-8">
           <div className="bg-blue-100 p-3 rounded-xl mr-4">
             <BookOpen className="text-blue-600 text-xl" />
@@ -101,7 +101,7 @@ export default function MyLibrary() {
 
   if (error) {
     return (
-      <div className="bg-gradient-to-br from-white to-gray-50 rounded-3xl shadow-xl p-8 border border-gray-100">
+      <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100">
         <div className="flex items-center mb-8">
           <div className="bg-blue-100 p-3 rounded-xl mr-4">
             <BookOpen className="text-blue-600 text-xl" />
@@ -125,7 +125,7 @@ export default function MyLibrary() {
   }
 
   return (
-    <div className="bg-gradient-to-br from-white to-gray-50 rounded-3xl shadow-xl p-8 border border-gray-100">
+    <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100">
       <div className="flex items-center mb-8">
         <div className="bg-blue-100 p-3 rounded-xl mr-4">
           <BookOpen className="text-blue-600 text-xl" />
@@ -170,7 +170,7 @@ export default function MyLibrary() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.3 }}
-                  className="group flex items-start justify-between p-3 bg-white rounded-lg shadow-sm border border-gray-200 hover:bg-gray-50 transition-colors"
+                  className="group flex items-start justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors"
                 >
                   <div className="flex items-start">
                     <img 
@@ -205,4 +205,4 @@ export default function MyLibrary() {
       </div>
     </div>
   );
-}
+};
