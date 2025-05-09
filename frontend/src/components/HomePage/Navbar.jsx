@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { toast } from "react-toastify";
 import { BookOpen, X, Menu, ChevronDown, ArrowRight, Search } from "lucide-react";
 import axios from "axios";
@@ -15,6 +15,7 @@ const Navbar = () => {
   const [showResults, setShowResults] = useState(false);
   const [searchError, setSearchError] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
+  const searchRef = useRef(null);
   const navigate = useNavigate();
   
   const navLinks = [
@@ -32,6 +33,18 @@ const Navbar = () => {
       const userObj = JSON.parse(userString);
       setUser(userObj);
     }
+
+    // Close search results when clicking outside
+    const handleClickOutside = (event) => {
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setShowResults(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
 
   const toggleMenu = () => {
@@ -78,7 +91,7 @@ const Navbar = () => {
           setSearchError("No books found matching your search");
         }
       } else {
-        setSearchError("Failed to fetch results");
+        setSearchError("No results found");
         setSearchResults([]);
       }
     } catch (error) {
@@ -96,12 +109,13 @@ const Navbar = () => {
     setSearchResults([]);
     setShowResults(false);
     setSearchError(null);
+    setIsMobileMenuOpen(false);
   };
 
-  const handleSearchBlur = () => {
-    setTimeout(() => {
-      setShowResults(false);
-    }, 200);
+  const handleSearchFocus = () => {
+    if (searchQuery && searchResults.length > 0) {
+      setShowResults(true);
+    }
   };
 
   return (
@@ -114,15 +128,17 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           {/* Logo */}
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            className="flex items-center space-x-2"
-          >
-            <BookOpen className="h-8 w-8 stroke-[1.5] text-gray-900" />
-            <span className="text-2xl font-medium tracking-tight text-gray-900">
-              Scroll<span className="font-light">&</span>Shelf
-            </span>
-          </motion.div>
+          <Link to="/">
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              className="flex items-center space-x-2"
+            >
+              <BookOpen className="h-8 w-8 stroke-[1.5] text-gray-900" />
+              <span className="text-2xl font-medium tracking-tight text-gray-900">
+                Scroll<span className="font-light">&</span>Shelf
+              </span>
+            </motion.div>
+          </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
@@ -144,7 +160,7 @@ const Navbar = () => {
             ))}
 
             {/* Search Bar */}
-            <div className="relative">
+            <div className="relative" ref={searchRef}>
               <form onSubmit={handleSearch} className="flex items-center">
                 <input
                   type="text"
@@ -155,12 +171,11 @@ const Navbar = () => {
                     setSearchQuery(e.target.value);
                     setSearchError(null);
                   }}
-                  onFocus={() => searchResults.length > 0 && setShowResults(true)}
-                  onBlur={handleSearchBlur}
+                  onFocus={handleSearchFocus}
                 />
                 <button
                   type="submit"
-                  className="ml-2 p-2 text-gray-600 hover:text-gray-900"
+                  className="ml-2 p-2 text-gray-600 hover:text-gray-900 transition-colors"
                   disabled={isSearching}
                 >
                   {isSearching ? (
@@ -184,31 +199,45 @@ const Navbar = () => {
                         {searchError}
                       </div>
                     ) : searchResults.length > 0 ? (
-                      searchResults.map((book) => (
-                        <div
-                          key={book.id}
-                          onClick={() => handleBookClick(book.id)}
-                          className="px-4 py-3 hover:bg-gray-50 cursor-pointer flex items-start space-x-3"
-                        >
-                          <div className="flex-shrink-0 h-16 w-12 bg-gray-100 overflow-hidden">
-                            {book.cover_image && (
-                              <img
-                                src={book.cover_image}
-                                alt={book.title}
-                                className="h-full w-full object-cover"
-                              />
-                            )}
-                          </div>
-                          <div>
-                            <h4 className="text-sm font-medium text-gray-900 line-clamp-1">
-                              {book.title}
-                            </h4>
-                            <p className="text-xs text-gray-500 mt-1">
-                              {book.author}
-                            </p>
-                          </div>
+                      <>
+                        <div className="px-4 py-2 text-xs text-gray-500 border-b border-gray-100">
+                          {searchResults.length} {searchResults.length === 1 ? "result" : "results"} found
                         </div>
-                      ))
+                        {searchResults.map((book) => (
+                          <div
+                            key={book.id}
+                            onClick={() => handleBookClick(book.id)}
+                            className="px-4 py-3 hover:bg-gray-50 cursor-pointer flex items-start space-x-3 transition-colors"
+                          >
+                            <div className="flex-shrink-0 h-16 w-12 bg-gray-100 overflow-hidden rounded-sm">
+                              {book.cover_image ? (
+                                <img
+                                  src={book.cover_image}
+                                  alt={book.title}
+                                  className="h-full w-full object-cover"
+                                />
+                              ) : (
+                                <div className="h-full w-full bg-gray-200 flex items-center justify-center">
+                                  <BookOpen className="h-5 w-5 text-gray-400" />
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="text-sm font-medium text-gray-900 truncate">
+                                {book.title}
+                              </h4>
+                              <p className="text-xs text-gray-500 mt-1 truncate">
+                                {book.author}
+                              </p>
+                              {book.category && (
+                                <span className="inline-block mt-1 px-2 py-0.5 text-xs text-gray-600 bg-gray-100 rounded-full">
+                                  {book.category.name}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </>
                     ) : (
                       <div className="px-4 py-3 text-sm text-gray-500 text-center">
                         Start typing to search for books
@@ -238,13 +267,14 @@ const Navbar = () => {
                     <div className="py-1">
                       <Link
                         to="/dashboard"
-                        className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+                        className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        onClick={toggleMenu}
                       >
                         Dashboard
                       </Link>
                       <button
                         onClick={logout}
-                        className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+                        className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                       >
                         Logout
                       </button>
@@ -256,6 +286,7 @@ const Navbar = () => {
               <Link to="/login-register">
                 <motion.button
                   whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                   className="bg-gray-900 text-white px-5 py-2.5 rounded-sm hover:bg-gray-800 transition-colors flex items-center space-x-2 text-sm"
                 >
                   <ArrowRight className="h-4 w-4 stroke-[1.5]" />
@@ -268,7 +299,8 @@ const Navbar = () => {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden p-2 rounded-sm text-gray-600 hover:bg-gray-50"
+            className="md:hidden p-2 rounded-sm text-gray-600 hover:bg-gray-50 transition-colors"
+            aria-label="Toggle menu"
           >
             {isMobileMenuOpen ? (
               <X className="h-6 w-6" />
@@ -293,7 +325,7 @@ const Navbar = () => {
               >
                 <motion.div
                   whileHover={{ x: 5 }}
-                  className="block px-3 py-2.5 text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                  className="block px-3 py-2.5 text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors"
                 >
                   {link.name}
                 </motion.div>
@@ -315,8 +347,9 @@ const Navbar = () => {
                 />
                 <button
                   type="submit"
-                  className="ml-2 p-2 text-gray-600 hover:text-gray-900"
+                  className="ml-2 p-2 text-gray-600 hover:text-gray-900 transition-colors"
                   disabled={isSearching}
+                  aria-label="Search"
                 >
                   {isSearching ? (
                     <div className="h-5 w-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
@@ -335,34 +368,40 @@ const Navbar = () => {
                     {searchError}
                   </div>
                 ) : searchResults.length > 0 ? (
-                  searchResults.map((book) => (
-                    <div
-                      key={book.id}
-                      onClick={() => {
-                        handleBookClick(book.id);
-                        setIsMobileMenuOpen(false);
-                      }}
-                      className="px-3 py-2 hover:bg-gray-50 cursor-pointer flex items-start space-x-3 border-b border-gray-100"
-                    >
-                      <div className="flex-shrink-0 h-12 w-10 bg-gray-100 overflow-hidden">
-                        {book.cover_image && (
-                          <img
-                            src={book.cover_image}
-                            alt={book.title}
-                            className="h-full w-full object-cover"
-                          />
-                        )}
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-900 line-clamp-1">
-                          {book.title}
-                        </h4>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {book.author}
-                        </p>
-                      </div>
+                  <>
+                    <div className="px-3 py-1 text-xs text-gray-500 border-b border-gray-100">
+                      {searchResults.length} {searchResults.length === 1 ? "result" : "results"} found
                     </div>
-                  ))
+                    {searchResults.map((book) => (
+                      <div
+                        key={book.id}
+                        onClick={() => handleBookClick(book.id)}
+                        className="px-3 py-2 hover:bg-gray-50 cursor-pointer flex items-start space-x-3 border-b border-gray-100 transition-colors"
+                      >
+                        <div className="flex-shrink-0 h-12 w-10 bg-gray-100 overflow-hidden rounded-sm">
+                          {book.cover_image ? (
+                            <img
+                              src={book.cover_image}
+                              alt={book.title}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div className="h-full w-full bg-gray-200 flex items-center justify-center">
+                              <BookOpen className="h-4 w-4 text-gray-400" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-sm font-medium text-gray-900 truncate">
+                            {book.title}
+                          </h4>
+                          <p className="text-xs text-gray-500 mt-1 truncate">
+                            {book.author}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </>
                 ) : null}
               </div>
             )}
@@ -373,7 +412,7 @@ const Navbar = () => {
                   to="/dashboard"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  <button className="w-full bg-gray-900 text-white px-5 py-2.5 rounded-sm hover:bg-gray-800">
+                  <button className="w-full bg-gray-900 text-white px-5 py-2.5 rounded-sm hover:bg-gray-800 transition-colors">
                     Dashboard
                   </button>
                 </Link>
@@ -382,7 +421,7 @@ const Navbar = () => {
                     logout();
                     setIsMobileMenuOpen(false);
                   }}
-                  className="w-full bg-gray-900 text-white px-5 py-2.5 rounded-sm hover:bg-gray-800"
+                  className="w-full bg-gray-900 text-white px-5 py-2.5 rounded-sm hover:bg-gray-800 transition-colors"
                 >
                   Logout
                 </button>
@@ -392,7 +431,7 @@ const Navbar = () => {
                 to="/login-register"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                <button className="w-full bg-gray-900 text-white px-5 py-2.5 rounded-sm hover:bg-gray-800 flex items-center space-x-2">
+                <button className="w-full bg-gray-900 text-white px-5 py-2.5 rounded-sm hover:bg-gray-800 transition-colors flex items-center justify-center space-x-2">
                   <ArrowRight className="h-4 w-4" />
                   <span>Get Started</span>
                 </button>
