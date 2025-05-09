@@ -1,13 +1,22 @@
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import { BookOpen, X, Menu, ChevronDown, ArrowRight, Search } from "lucide-react";
+import {
+  BookOpen,
+  X,
+  Menu,
+  ChevronDown,
+  ArrowRight,
+  Search
+} from "lucide-react";
 import axios from "axios";
 
 const API_BASE_URL = "https://scrollandshelf.pythonanywhere.com";
 
 const Navbar = () => {
+  const navigate = useNavigate();
+
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -16,12 +25,12 @@ const Navbar = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
-  
+
   const navLinks = [
     { name: "Home", path: "/" },
     { name: "Ebooks", path: "/ebooks" },
     { name: "Categories", path: "/categories" },
-    { name: "Community", path: "/community" },
+    { name: "Community", path: "/community" }
   ];
 
   useEffect(() => {
@@ -49,7 +58,7 @@ const Navbar = () => {
       hideProgressBar: false,
       closeOnClick: true,
       pauseOnHover: true,
-      draggable: true,
+      draggable: true
     });
     setTimeout(() => (window.location.href = "/"), 2000);
   };
@@ -70,18 +79,12 @@ const Navbar = () => {
           headers: token ? { Authorization: `Token ${token}` } : {}
         }
       );
-      
+
       setSearchResults(response.data.results || []);
       setShowSearchResults(true);
     } catch (error) {
       console.error("Search error:", error);
-      if (error.response) {
-        toast.error(`Search failed: ${error.response.statusText}`);
-      } else if (error.request) {
-        toast.error("Network error - please check your connection");
-      } else {
-        toast.error("Error in search request");
-      }
+      toast.error("Failed to search ebooks.");
       setSearchResults([]);
       setShowSearchResults(false);
     } finally {
@@ -94,18 +97,23 @@ const Navbar = () => {
     setSearchQuery("");
   };
 
+  const handleResultClick = (ebookId) => {
+    navigate(`/ebook-detail?id=${ebookId}`);
+    closeSearchResults();
+  };
+
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (showSearchResults && !e.target.closest('.search-container')) {
+      if (showSearchResults && !e.target.closest(".search-container")) {
         setShowSearchResults(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showSearchResults]);
 
   return (
-    <motion.nav 
+    <motion.nav
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.5 }}
@@ -115,251 +123,138 @@ const Navbar = () => {
         <div className="flex justify-between items-center h-20">
           {/* Logo */}
           <motion.div
-            whileHover={{ scale: 1.02 }}
-            className="flex items-center space-x-2"
+            whileHover={{ scale: 1.05 }}
+            className="text-xl font-bold text-amber-600"
           >
-            <BookOpen className="h-8 w-8 stroke-[1.5] text-gray-900" />
-            <span className="text-2xl font-medium tracking-tight text-gray-900">
-              Scroll<span className="font-light">&</span>Shelf
-            </span>
+            <Link to="/">Scroll&Shelf</Link>
           </motion.div>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
+          {/* Navigation Links */}
+          <div className="hidden md:flex items-center space-x-6">
             {navLinks.map((link) => (
-              <Link key={link.name} to={link.path}>
-                <motion.div
-                  whileHover={{ y: -2 }}
-                  className="relative text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors"
-                >
-                  {link.name}
-                  <motion.div
-                    className="absolute bottom-0 left-0 w-full h-px bg-gray-900 origin-left"
-                    initial={{ scaleX: 0 }}
-                    whileHover={{ scaleX: 1 }}
-                    transition={{ duration: 0.2 }}
-                  />
-                </motion.div>
+              <Link
+                key={link.name}
+                to={link.path}
+                className="text-gray-700 hover:text-amber-600 transition-colors"
+              >
+                {link.name}
               </Link>
             ))}
-
-            {/* Search Bar */}
-            <div className="relative search-container">
-              <form onSubmit={handleSearch} className="flex items-center">
-                <input
-                  type="text"
-                  placeholder="Search books..."
-                  className="border border-gray-300 rounded-sm px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-400 w-64"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                <button
-                  type="submit"
-                  className="ml-2 p-2 text-gray-600 hover:text-gray-900"
-                  disabled={isSearching}
-                >
-                  {isSearching ? (
-                    <div className="h-5 w-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
-                  ) : (
-                    <Search className="h-5 w-5" />
-                  )}
-                </button>
-              </form>
-
-              {/* Search Results Dropdown */}
-              {showSearchResults && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="absolute right-0 mt-2 w-96 bg-white rounded-sm shadow-xl border border-gray-100 max-h-96 overflow-y-auto z-50"
-                >
-                  <div className="p-2">
-                    <div className="flex justify-between items-center px-2 py-1 border-b border-gray-100">
-                      <h3 className="text-sm font-medium">
-                        {searchResults.length > 0 
-                          ? `Found ${searchResults.length} ${searchResults.length === 1 ? 'book' : 'books'}`
-                          : "No books found"}
-                      </h3>
-                      <button
-                        onClick={closeSearchResults}
-                        className="text-gray-400 hover:text-gray-600"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    </div>
-                    {searchResults.length > 0 ? (
-                      <div className="divide-y divide-gray-100">
-                        {searchResults.map((book) => (
-                          <Link
-                            key={book.id}
-                            to={`/ebook-detail?id=${ebookId}`}
-                            onClick={closeSearchResults}
-                            className="block px-3 py-3 hover:bg-gray-50"
-                          >
-                            <div className="flex items-center space-x-3">
-                              {book.cover_image && (
-                                <img
-                                  src={book.cover_image}
-                                  alt={book.title}
-                                  className="h-12 w-9 object-cover rounded-sm"
-                                  onError={(e) => {
-                                    e.target.src = '/placeholder-book-cover.jpg';
-                                  }}
-                                />
-                              )}
-                              <div>
-                                <h4 className="text-sm font-medium text-gray-900">
-                                  {book.title}
-                                </h4>
-                                <p className="text-xs text-gray-500">
-                                  {book.author}
-                                </p>
-                                {book.category && (
-                                  <span className="inline-block mt-1 px-2 py-0.5 text-xs bg-gray-100 rounded-sm">
-                                    {book.category.name}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </Link>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="px-3 py-4 text-center text-sm text-gray-500">
-                        No books found matching "{searchQuery}"
-                      </div>
-                    )}
-                  </div>
-                </motion.div>
-              )}
-            </div>
-
-            {isLoggedIn ? (
-              <div className="relative">
-                <button
-                  onClick={toggleMenu}
-                  className="flex items-center space-x-2 bg-gray-900 text-white px-5 py-2.5 rounded-sm hover:bg-gray-800 transition-colors"
-                >
-                  <span className="text-sm">Hi, {user?.first_name}</span>
-                  <ChevronDown className="h-4 w-4 stroke-[1.5]" />
-                </button>
-
-                {isMenuOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="absolute right-0 mt-2 w-48 bg-white rounded-sm shadow-xl border border-gray-100"
-                  >
-                    <div className="py-1">
-                      <Link
-                        to="/dashboard"
-                        className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
-                      >
-                        Dashboard
-                      </Link>
-                      <button
-                        onClick={logout}
-                        className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
-                      >
-                        Logout
-                      </button>
-                    </div>
-                  </motion.div>
-                )}
-              </div>
-            ) : (
-              <Link to="/login-register">
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  className="bg-gray-900 text-white px-5 py-2.5 rounded-sm hover:bg-gray-800 transition-colors flex items-center space-x-2 text-sm"
-                >
-                  <ArrowRight className="h-4 w-4 stroke-[1.5]" />
-                  <span>Get Started</span>
-                </motion.button>
-              </Link>
-            )}
           </div>
 
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden p-2 rounded-sm text-gray-600 hover:bg-gray-50"
+          {/* Search */}
+          <form
+            onSubmit={handleSearch}
+            className="relative hidden md:flex items-center search-container"
           >
-            {isMobileMenuOpen ? (
-              <X className="h-6 w-6" />
-            ) : (
-              <Menu className="h-6 w-6" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search books..."
+              className="border border-gray-300 rounded-full px-4 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+            />
+            <button
+              type="submit"
+              className="absolute right-2 text-gray-500 hover:text-amber-600"
+            >
+              <Search className="w-4 h-4" />
+            </button>
+
+            {/* Search Results Dropdown */}
+            {showSearchResults && searchResults.length > 0 && (
+              <div className="absolute top-10 left-0 w-64 bg-white shadow-lg border border-gray-200 rounded-md z-50">
+                <ul>
+                  {searchResults.map((result) => (
+                    <li
+                      key={result.id}
+                      onClick={() => handleResultClick(result.id)}
+                      className="px-4 py-2 hover:bg-amber-50 cursor-pointer text-sm text-gray-700"
+                    >
+                      {result.title}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             )}
-          </button>
-        </div>
+          </form>
 
-        {/* Mobile Menu */}
-        {isMobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="md:hidden pb-4 space-y-2"
-          >
-            {navLinks.map((link) => (
-              <Link key={link.name} to={link.path}>
-                <motion.div
-                  whileHover={{ x: 5 }}
-                  className="block px-3 py-2.5 text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-                >
-                  {link.name}
-                </motion.div>
-              </Link>
-            ))}
-
-            {/* Mobile Search */}
-            <div className="px-3 py-2 search-container">
-              <form onSubmit={handleSearch} className="flex items-center">
-                <input
-                  type="text"
-                  placeholder="Search books..."
-                  className="border border-gray-300 rounded-sm px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-400 flex-grow"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                <button
-                  type="submit"
-                  className="ml-2 p-2 text-gray-600 hover:text-gray-900"
-                  disabled={isSearching}
-                >
-                  {isSearching ? (
-                    <div className="h-5 w-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
-                  ) : (
-                    <Search className="h-5 w-5" />
-                  )}
-                </button>
-              </form>
-            </div>
-
+          {/* Right side: Auth Buttons */}
+          <div className="flex items-center space-x-4">
             {isLoggedIn ? (
-              <div className="space-y-2 mt-2">
-                <Link to="/dashboard">
-                  <button className="w-full bg-gray-900 text-white px-5 py-2.5 rounded-sm hover:bg-gray-800">
-                    Dashboard
-                  </button>
-                </Link>
+              <>
+                <span className="text-gray-700 text-sm">Hi, {user?.username}</span>
                 <button
                   onClick={logout}
-                  className="w-full bg-gray-900 text-white px-5 py-2.5 rounded-sm hover:bg-gray-800"
+                  className="text-sm text-red-500 hover:text-red-700"
                 >
                   Logout
                 </button>
-              </div>
+              </>
             ) : (
-              <Link to="/login-register">
-                <button className="w-full bg-gray-900 text-white px-5 py-2.5 rounded-sm hover:bg-gray-800 flex items-center space-x-2">
-                  <ArrowRight className="h-4 w-4" />
-                  <span>Get Started</span>
-                </button>
-              </Link>
+              <>
+                <Link
+                  to="/login"
+                  className="text-sm text-gray-700 hover:text-amber-600"
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/register"
+                  className="text-sm text-white bg-amber-600 px-3 py-1 rounded-full hover:bg-amber-700"
+                >
+                  Sign Up
+                </Link>
+              </>
             )}
-          </motion.div>
-        )}
+          </div>
+
+          {/* Mobile Menu Toggle */}
+          <div className="md:hidden">
+            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+              {isMobileMenuOpen ? <X /> : <Menu />}
+            </button>
+          </div>
+        </div>
       </div>
+
+      {/* Mobile Menu */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden bg-white border-t border-gray-100">
+          <div className="px-4 pt-4 pb-2 space-y-2">
+            {navLinks.map((link) => (
+              <Link
+                key={link.name}
+                to={link.path}
+                className="block text-gray-700 hover:text-amber-600"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                {link.name}
+              </Link>
+            ))}
+            {isLoggedIn ? (
+              <button
+                onClick={logout}
+                className="block w-full text-left text-red-500 hover:text-red-700"
+              >
+                Logout
+              </button>
+            ) : (
+              <>
+                <Link to="/login" className="block text-gray-700 hover:text-amber-600">
+                  Login
+                </Link>
+                <Link
+                  to="/register"
+                  className="block text-white bg-amber-600 px-3 py-1 rounded-full hover:bg-amber-700 mt-2"
+                >
+                  Sign Up
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </motion.nav>
   );
 };
