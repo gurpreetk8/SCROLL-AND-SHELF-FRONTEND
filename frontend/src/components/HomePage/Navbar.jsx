@@ -13,6 +13,8 @@ const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [showResults, setShowResults] = useState(false);
+  const [searchError, setSearchError] = useState(null);
+  const [isSearching, setIsSearching] = useState(false);
   const navigate = useNavigate();
   
   const navLinks = [
@@ -54,19 +56,37 @@ const Navbar = () => {
 
   const handleSearch = async (e) => {
     e.preventDefault();
-    if (!searchQuery.trim()) return;
+    setSearchError(null);
+    
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      setShowResults(false);
+      return;
+    }
 
+    setIsSearching(true);
     try {
       const response = await axios.get(
-        `https://scrollandshelf.pythonanywhere.com/ebooks/book_search/?title=${searchQuery}`
+        `https://scrollandshelf.pythonanywhere.com/ebooks/book_search/?title=${encodeURIComponent(searchQuery)}`
       );
+      
       if (response.data.status === "success") {
         setSearchResults(response.data.results);
         setShowResults(true);
+        
+        if (response.data.results.length === 0) {
+          setSearchError("No books found matching your search");
+        }
+      } else {
+        setSearchError("Failed to fetch results");
+        setSearchResults([]);
       }
     } catch (error) {
       console.error("Search error:", error);
-      toast.error("Failed to search books");
+      setSearchError("Error searching for books");
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
     }
   };
 
@@ -75,6 +95,7 @@ const Navbar = () => {
     setSearchQuery("");
     setSearchResults([]);
     setShowResults(false);
+    setSearchError(null);
   };
 
   const handleSearchBlur = () => {
@@ -130,51 +151,69 @@ const Navbar = () => {
                   placeholder="Search books..."
                   className="px-4 py-2 w-64 border border-gray-300 rounded-sm focus:outline-none focus:ring-1 focus:ring-gray-400 text-sm"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setSearchError(null);
+                  }}
                   onFocus={() => searchResults.length > 0 && setShowResults(true)}
                   onBlur={handleSearchBlur}
                 />
                 <button
                   type="submit"
                   className="ml-2 p-2 text-gray-600 hover:text-gray-900"
+                  disabled={isSearching}
                 >
-                  <Search className="h-5 w-5" />
+                  {isSearching ? (
+                    <div className="h-5 w-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    <Search className="h-5 w-5" />
+                  )}
                 </button>
               </form>
 
               {/* Search Results Dropdown */}
-              {showResults && searchResults.length > 0 && (
+              {showResults && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="absolute top-full right-0 mt-2 w-96 bg-white rounded-sm shadow-lg border border-gray-200 z-50 max-h-96 overflow-y-auto"
                 >
                   <div className="py-2">
-                    {searchResults.map((book) => (
-                      <div
-                        key={book.id}
-                        onClick={() => handleBookClick(book.id)}
-                        className="px-4 py-3 hover:bg-gray-50 cursor-pointer flex items-start space-x-3"
-                      >
-                        <div className="flex-shrink-0 h-16 w-12 bg-gray-100 overflow-hidden">
-                          {book.cover_image && (
-                            <img
-                              src={book.cover_image}
-                              alt={book.title}
-                              className="h-full w-full object-cover"
-                            />
-                          )}
-                        </div>
-                        <div>
-                          <h4 className="text-sm font-medium text-gray-900 line-clamp-1">
-                            {book.title}
-                          </h4>
-                          <p className="text-xs text-gray-500 mt-1">
-                            {book.author}
-                          </p>
-                        </div>
+                    {searchError ? (
+                      <div className="px-4 py-3 text-sm text-gray-500 text-center">
+                        {searchError}
                       </div>
-                    ))}
+                    ) : searchResults.length > 0 ? (
+                      searchResults.map((book) => (
+                        <div
+                          key={book.id}
+                          onClick={() => handleBookClick(book.id)}
+                          className="px-4 py-3 hover:bg-gray-50 cursor-pointer flex items-start space-x-3"
+                        >
+                          <div className="flex-shrink-0 h-16 w-12 bg-gray-100 overflow-hidden">
+                            {book.cover_image && (
+                              <img
+                                src={book.cover_image}
+                                alt={book.title}
+                                className="h-full w-full object-cover"
+                              />
+                            )}
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-medium text-gray-900 line-clamp-1">
+                              {book.title}
+                            </h4>
+                            <p className="text-xs text-gray-500 mt-1">
+                              {book.author}
+                            </p>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="px-4 py-3 text-sm text-gray-500 text-center">
+                        Start typing to search for books
+                      </div>
+                    )}
                   </div>
                 </motion.div>
               )}
@@ -247,7 +286,11 @@ const Navbar = () => {
             className="md:hidden pb-4 space-y-2"
           >
             {navLinks.map((link) => (
-              <Link key={link.name} to={link.path}>
+              <Link 
+                key={link.name} 
+                to={link.path}
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
                 <motion.div
                   whileHover={{ x: 5 }}
                   className="block px-3 py-2.5 text-gray-600 hover:text-gray-900 hover:bg-gray-50"
@@ -265,64 +308,90 @@ const Navbar = () => {
                   placeholder="Search books..."
                   className="flex-1 px-4 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-1 focus:ring-gray-400 text-sm"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setSearchError(null);
+                  }}
                 />
                 <button
                   type="submit"
                   className="ml-2 p-2 text-gray-600 hover:text-gray-900"
+                  disabled={isSearching}
                 >
-                  <Search className="h-5 w-5" />
+                  {isSearching ? (
+                    <div className="h-5 w-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    <Search className="h-5 w-5" />
+                  )}
                 </button>
               </form>
             </div>
 
             {/* Mobile Search Results */}
-            {searchResults.length > 0 && (
+            {(searchResults.length > 0 || searchError) && (
               <div className="px-3 py-2 space-y-2">
-                {searchResults.map((book) => (
-                  <div
-                    key={book.id}
-                    onClick={() => handleBookClick(book.id)}
-                    className="px-3 py-2 hover:bg-gray-50 cursor-pointer flex items-start space-x-3 border-b border-gray-100"
-                  >
-                    <div className="flex-shrink-0 h-12 w-10 bg-gray-100 overflow-hidden">
-                      {book.cover_image && (
-                        <img
-                          src={book.cover_image}
-                          alt={book.title}
-                          className="h-full w-full object-cover"
-                        />
-                      )}
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-900 line-clamp-1">
-                        {book.title}
-                      </h4>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {book.author}
-                      </p>
-                    </div>
+                {searchError ? (
+                  <div className="px-3 py-2 text-sm text-gray-500 text-center">
+                    {searchError}
                   </div>
-                ))}
+                ) : searchResults.length > 0 ? (
+                  searchResults.map((book) => (
+                    <div
+                      key={book.id}
+                      onClick={() => {
+                        handleBookClick(book.id);
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="px-3 py-2 hover:bg-gray-50 cursor-pointer flex items-start space-x-3 border-b border-gray-100"
+                    >
+                      <div className="flex-shrink-0 h-12 w-10 bg-gray-100 overflow-hidden">
+                        {book.cover_image && (
+                          <img
+                            src={book.cover_image}
+                            alt={book.title}
+                            className="h-full w-full object-cover"
+                          />
+                        )}
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-900 line-clamp-1">
+                          {book.title}
+                        </h4>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {book.author}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                ) : null}
               </div>
             )}
 
             {isLoggedIn ? (
               <div className="space-y-2 mt-2">
-                <Link to="/dashboard">
+                <Link 
+                  to="/dashboard"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
                   <button className="w-full bg-gray-900 text-white px-5 py-2.5 rounded-sm hover:bg-gray-800">
                     Dashboard
                   </button>
                 </Link>
                 <button
-                  onClick={logout}
+                  onClick={() => {
+                    logout();
+                    setIsMobileMenuOpen(false);
+                  }}
                   className="w-full bg-gray-900 text-white px-5 py-2.5 rounded-sm hover:bg-gray-800"
                 >
                   Logout
                 </button>
               </div>
             ) : (
-              <Link to="/login-register">
+              <Link 
+                to="/login-register"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
                 <button className="w-full bg-gray-900 text-white px-5 py-2.5 rounded-sm hover:bg-gray-800 flex items-center space-x-2">
                   <ArrowRight className="h-4 w-4" />
                   <span>Get Started</span>
