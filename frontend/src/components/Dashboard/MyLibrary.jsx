@@ -2,16 +2,51 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { BookOpen, Loader2, Clock } from "lucide-react";
 import axios from "axios";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function MyLibrary() {
   const [books, setBooks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
+  const [readingLoading, setReadingLoading] = useState(false);
+  const [currentBookId, setCurrentBookId] = useState(null);
+  const navigate = useNavigate();
   
   const API_BASE_URL = "https://scrollandshelf.pythonanywhere.com/ebooks/";
   const token = localStorage.getItem("token");
+
+  const handleReadNow = async (ebookId) => {
+    if (!token) {
+      setError('You must be logged in to read books.');
+      return;
+    }
+
+    setCurrentBookId(ebookId);
+    setReadingLoading(true);
+    try {
+      const readingResponse = await axios.post(
+        `${API_BASE_URL}add_reading_book/`,
+        { id: ebookId },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (readingResponse.data.success) {
+        navigate(`/read?id=${ebookId}`);
+      } else {
+        setError(readingResponse.data.message || 'Failed to add book to reading list.');
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Error preparing book for reading.');
+    } finally {
+      setReadingLoading(false);
+    }
+  };
 
   const fetchReadingBooks = async () => {
     try {
@@ -191,13 +226,18 @@ export default function MyLibrary() {
                         </div>
                       </div>
                     </div>
-                    <Link
-                      to={`/read/${book.id}`}
-                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                    <button
+                      onClick={() => handleReadNow(book.id)}
+                      disabled={readingLoading && currentBookId === book.id}
+                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:bg-blue-400"
                     >
-                      <BookOpen className="w-4 h-4" />
-                      Continue 
-                    </Link>
+                      {readingLoading && currentBookId === book.id ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <BookOpen className="w-4 h-4" />
+                      )}
+                      {readingLoading && currentBookId === book.id ? "Loading..." : "Continue"}
+                    </button>
                   </motion.li>
                 ))}
               </ul>
