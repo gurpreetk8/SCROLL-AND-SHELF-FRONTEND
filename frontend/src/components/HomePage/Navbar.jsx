@@ -1,28 +1,21 @@
 import { motion } from "framer-motion";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import { BookOpen, X, Menu, ChevronDown, ArrowRight, Search } from "lucide-react";
-import axios from "axios";
-
-const API_BASE_URL = "https://scrollandshelf.pythonanywhere.com";
+import { BookOpen, X, Menu, ChevronDown, ArrowRight } from "lucide-react";
 
 const Navbar = () => {
-  const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState([]);
-  const [showSearchResults, setShowSearchResults] = useState(false);
-  const [isSearching, setIsSearching] = useState(false);
   
   const navLinks = [
     { name: "Home", path: "/" },
     { name: "Ebooks", path: "/ebooks" },
     { name: "Categories", path: "/categories" },
     { name: "Community", path: "/community" },
+    { name: "Request a Book", path: "/request" },
   ];
 
   useEffect(() => {
@@ -54,56 +47,6 @@ const Navbar = () => {
     });
     setTimeout(() => (window.location.href = "/"), 2000);
   };
-
-  const handleSearch = async (e) => {
-    e.preventDefault();
-    if (!searchQuery.trim()) {
-      setShowSearchResults(false);
-      return;
-    }
-
-    setIsSearching(true);
-    try {
-      const token = localStorage.getItem("token");
-      const response = await axios.get(
-        `${API_BASE_URL}/ebooks/book_search/?title=${encodeURIComponent(searchQuery)}`,
-        {
-          headers: token ? { Authorization: `Token ${token}` } : {}
-        }
-      );
-      
-      setSearchResults(response.data.results || []);
-      setShowSearchResults(true);
-    } catch (error) {
-      console.error("Search error:", error);
-      if (error.response) {
-        toast.error(`Search failed: ${error.response.statusText}`);
-      } else if (error.request) {
-        toast.error("Network error - please check your connection");
-      } else {
-        toast.error("Error in search request");
-      }
-      setSearchResults([]);
-      setShowSearchResults(false);
-    } finally {
-      setIsSearching(false);
-    }
-  };
-
-  const closeSearchResults = () => {
-    setShowSearchResults(false);
-    setSearchQuery("");
-  };
-
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (showSearchResults && !e.target.closest('.search-container')) {
-        setShowSearchResults(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showSearchResults]);
 
   return (
     <motion.nav 
@@ -143,97 +86,6 @@ const Navbar = () => {
                 </motion.div>
               </Link>
             ))}
-
-            {/* Search Bar */}
-            <div className="relative search-container">
-              <form onSubmit={handleSearch} className="flex items-center">
-                <input
-                  type="text"
-                  placeholder="Search books..."
-                  className="border border-gray-300 rounded-sm px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-400 w-64"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                <button
-                  type="submit"
-                  className="ml-2 p-2 text-gray-600 hover:text-gray-900"
-                  disabled={isSearching}
-                >
-                  {isSearching ? (
-                    <div className="h-5 w-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
-                  ) : (
-                    <Search className="h-5 w-5" />
-                  )}
-                </button>
-              </form>
-
-              {/* Search Results Dropdown */}
-              {showSearchResults && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="absolute right-0 mt-2 w-96 bg-white rounded-sm shadow-xl border border-gray-100 max-h-96 overflow-y-auto z-50"
-                >
-                  <div className="p-2">
-                    <div className="flex justify-between items-center px-2 py-1 border-b border-gray-100">
-                      <h3 className="text-sm font-medium">
-                        {searchResults.length > 0 
-                          ? `Found ${searchResults.length} ${searchResults.length === 1 ? 'book' : 'books'}`
-                          : "No books found"}
-                      </h3>
-                      <button
-                        onClick={closeSearchResults}
-                        className="text-gray-400 hover:text-gray-600"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    </div>
-                    {searchResults.length > 0 ? (
-                      <div className="divide-y divide-gray-100">
-                        {searchResults.map((book) => (
-                          <Link
-                            key={book.id}
-                            to={`/ebook-detail?id=${ebookId}`}
-                            onClick={closeSearchResults}
-                            className="block px-3 py-3 hover:bg-gray-50"
-                          >
-                            <div className="flex items-center space-x-3">
-                              {book.cover_image && (
-                                <img
-                                  src={book.cover_image}
-                                  alt={book.title}
-                                  className="h-12 w-9 object-cover rounded-sm"
-                                  onError={(e) => {
-                                    e.target.src = '/placeholder-book-cover.jpg';
-                                  }}
-                                />
-                              )}
-                              <div>
-                                <h4 className="text-sm font-medium text-gray-900">
-                                  {book.title}
-                                </h4>
-                                <p className="text-xs text-gray-500">
-                                  {book.author}
-                                </p>
-                                {book.category && (
-                                  <span className="inline-block mt-1 px-2 py-0.5 text-xs bg-gray-100 rounded-sm">
-                                    {book.category.name}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </Link>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="px-3 py-4 text-center text-sm text-gray-500">
-                        No books found matching "{searchQuery}"
-                      </div>
-                    )}
-                  </div>
-                </motion.div>
-              )}
-            </div>
 
             {isLoggedIn ? (
               <div className="relative">
@@ -311,31 +163,6 @@ const Navbar = () => {
                 </motion.div>
               </Link>
             ))}
-
-            {/* Mobile Search */}
-            <div className="px-3 py-2 search-container">
-              <form onSubmit={handleSearch} className="flex items-center">
-                <input
-                  type="text"
-                  placeholder="Search books..."
-                  className="border border-gray-300 rounded-sm px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-400 flex-grow"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                <button
-                  type="submit"
-                  className="ml-2 p-2 text-gray-600 hover:text-gray-900"
-                  disabled={isSearching}
-                >
-                  {isSearching ? (
-                    <div className="h-5 w-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
-                  ) : (
-                    <Search className="h-5 w-5" />
-                  )}
-                </button>
-              </form>
-            </div>
-
             {isLoggedIn ? (
               <div className="space-y-2 mt-2">
                 <Link to="/dashboard">
