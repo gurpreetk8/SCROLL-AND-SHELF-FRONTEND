@@ -1,21 +1,25 @@
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import { BookOpen, X, Menu, ChevronDown, ArrowRight } from "lucide-react";
+import { BookOpen, X, Menu, ChevronDown, ArrowRight, Search } from "lucide-react";
+import axios from "axios";
 
 const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [showResults, setShowResults] = useState(false);
+  const navigate = useNavigate();
   
   const navLinks = [
     { name: "Home", path: "/" },
     { name: "Ebooks", path: "/ebooks" },
     { name: "Categories", path: "/categories" },
     { name: "Community", path: "/community" },
-    { name: "Request a Book", path: "/request" },
   ];
 
   useEffect(() => {
@@ -46,6 +50,37 @@ const Navbar = () => {
       draggable: true,
     });
     setTimeout(() => (window.location.href = "/"), 2000);
+  };
+
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
+
+    try {
+      const response = await axios.get(
+        `https://scrollandshelf.pythonanywhere.com/ebooks/book_search/?title=${searchQuery}`
+      );
+      if (response.data.status === "success") {
+        setSearchResults(response.data.results);
+        setShowResults(true);
+      }
+    } catch (error) {
+      console.error("Search error:", error);
+      toast.error("Failed to search books");
+    }
+  };
+
+  const handleBookClick = (ebookId) => {
+    navigate(`/ebook-detail?id=${ebookId}`);
+    setSearchQuery("");
+    setSearchResults([]);
+    setShowResults(false);
+  };
+
+  const handleSearchBlur = () => {
+    setTimeout(() => {
+      setShowResults(false);
+    }, 200);
   };
 
   return (
@@ -86,6 +121,64 @@ const Navbar = () => {
                 </motion.div>
               </Link>
             ))}
+
+            {/* Search Bar */}
+            <div className="relative">
+              <form onSubmit={handleSearch} className="flex items-center">
+                <input
+                  type="text"
+                  placeholder="Search books..."
+                  className="px-4 py-2 w-64 border border-gray-300 rounded-sm focus:outline-none focus:ring-1 focus:ring-gray-400 text-sm"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onFocus={() => searchResults.length > 0 && setShowResults(true)}
+                  onBlur={handleSearchBlur}
+                />
+                <button
+                  type="submit"
+                  className="ml-2 p-2 text-gray-600 hover:text-gray-900"
+                >
+                  <Search className="h-5 w-5" />
+                </button>
+              </form>
+
+              {/* Search Results Dropdown */}
+              {showResults && searchResults.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="absolute top-full right-0 mt-2 w-96 bg-white rounded-sm shadow-lg border border-gray-200 z-50 max-h-96 overflow-y-auto"
+                >
+                  <div className="py-2">
+                    {searchResults.map((book) => (
+                      <div
+                        key={book.id}
+                        onClick={() => handleBookClick(book.id)}
+                        className="px-4 py-3 hover:bg-gray-50 cursor-pointer flex items-start space-x-3"
+                      >
+                        <div className="flex-shrink-0 h-16 w-12 bg-gray-100 overflow-hidden">
+                          {book.cover_image && (
+                            <img
+                              src={book.cover_image}
+                              alt={book.title}
+                              className="h-full w-full object-cover"
+                            />
+                          )}
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-medium text-gray-900 line-clamp-1">
+                            {book.title}
+                          </h4>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {book.author}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </div>
 
             {isLoggedIn ? (
               <div className="relative">
@@ -163,6 +256,57 @@ const Navbar = () => {
                 </motion.div>
               </Link>
             ))}
+
+            {/* Mobile Search */}
+            <div className="px-3 py-2">
+              <form onSubmit={handleSearch} className="flex items-center">
+                <input
+                  type="text"
+                  placeholder="Search books..."
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-1 focus:ring-gray-400 text-sm"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <button
+                  type="submit"
+                  className="ml-2 p-2 text-gray-600 hover:text-gray-900"
+                >
+                  <Search className="h-5 w-5" />
+                </button>
+              </form>
+            </div>
+
+            {/* Mobile Search Results */}
+            {searchResults.length > 0 && (
+              <div className="px-3 py-2 space-y-2">
+                {searchResults.map((book) => (
+                  <div
+                    key={book.id}
+                    onClick={() => handleBookClick(book.id)}
+                    className="px-3 py-2 hover:bg-gray-50 cursor-pointer flex items-start space-x-3 border-b border-gray-100"
+                  >
+                    <div className="flex-shrink-0 h-12 w-10 bg-gray-100 overflow-hidden">
+                      {book.cover_image && (
+                        <img
+                          src={book.cover_image}
+                          alt={book.title}
+                          className="h-full w-full object-cover"
+                        />
+                      )}
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-900 line-clamp-1">
+                        {book.title}
+                      </h4>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {book.author}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
             {isLoggedIn ? (
               <div className="space-y-2 mt-2">
                 <Link to="/dashboard">
