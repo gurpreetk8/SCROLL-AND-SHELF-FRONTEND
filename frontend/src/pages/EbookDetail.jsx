@@ -18,11 +18,36 @@ const EbookDetail = () => {
   const [ratings, setRatings] = useState({ average: 0, count: 0 });
   const [showWishlistText, setShowWishlistText] = useState(false);
   const [isReading, setIsReading] = useState(false);
+  const [hasSubscription, setHasSubscription] = useState(false);
+  const [checkingSubscription, setCheckingSubscription] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
   const queryParams = new URLSearchParams(location.search);
   const ebookId = queryParams.get('id');
+
+  const checkSubscriptionStatus = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return false;
+
+    try {
+      const response = await axios.post(
+        'https://scrollandshelf.pythonanywhere.com/check_subscription/',
+        {},
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        }
+      );
+
+      return response.data.success && response.data.has_subscription;
+    } catch (err) {
+      console.error('Error checking subscription:', err);
+      return false;
+    }
+  };
 
   const fetchBookReviews = async () => {
     try {
@@ -167,7 +192,7 @@ const EbookDetail = () => {
   };
 
   useEffect(() => {
-    const fetchEbookDetails = async () => {
+    const fetchData = async () => {
       const token = localStorage.getItem('token');
       if (!token) {
         setError('You must be logged in to view book details.');
@@ -182,6 +207,11 @@ const EbookDetail = () => {
       }
 
       try {
+        setCheckingSubscription(true);
+        const subscribed = await checkSubscriptionStatus();
+        setHasSubscription(subscribed);
+        setCheckingSubscription(false);
+
         const response = await axios.post(
           'https://scrollandshelf.pythonanywhere.com/ebooks/ebook_detail/',
           { id: ebookId },
@@ -208,7 +238,7 @@ const EbookDetail = () => {
       }
     };
 
-    fetchEbookDetails();
+    fetchData();
   }, [ebookId]);
 
   if (loading) return (
@@ -320,25 +350,36 @@ const EbookDetail = () => {
 
               <div className="flex items-center space-x-4">
                 {ebook.file_url ? (
-                  <>
+                  hasSubscription ? (
+                    <>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        onClick={handleReadNow}
+                        disabled={readingLoading}
+                        className="flex items-center bg-gray-900 text-white px-8 py-3 rounded-lg hover:bg-gray-800 disabled:bg-gray-500"
+                      >
+                        <BookOpen className="h-5 w-5 mr-2" />
+                        {readingLoading ? 'Loading...' : isReading ? 'Continue Reading' : 'Read Now'}
+                      </motion.button>
+                      <motion.a
+                        whileHover={{ scale: 1.05 }}
+                        href={`https://scrollandshelf.pythonanywhere.com/${ebook.file_url}`}
+                        className="flex items-center bg-gray-900 text-white px-8 py-3 rounded-lg hover:bg-gray-800"
+                      >
+                        <Download className="h-5 w-5 mr-2" />
+                        Download Now
+                      </motion.a>
+                    </>
+                  ) : (
                     <motion.button
                       whileHover={{ scale: 1.05 }}
-                      onClick={handleReadNow}
-                      disabled={readingLoading}
-                      className="flex items-center bg-gray-900 text-white px-8 py-3 rounded-lg hover:bg-gray-800 disabled:bg-gray-500"
+                      className="flex items-center bg-gradient-to-r from-amber-500 to-amber-600 text-white px-8 py-3 rounded-lg hover:from-amber-600 hover:to-amber-700"
+                      onClick={() => navigate('/subscribe')}
                     >
                       <BookOpen className="h-5 w-5 mr-2" />
-                      {readingLoading ? 'Loading...' : isReading ? 'Continue Reading' : 'Read Now'}
+                      {checkingSubscription ? 'Checking...' : 'Subscribe to Access'}
                     </motion.button>
-                    <motion.a
-                      whileHover={{ scale: 1.05 }}
-                      href={`https://scrollandshelf.pythonanywhere.com/${ebook.file_url}`}
-                      className="flex items-center bg-gray-900 text-white px-8 py-3 rounded-lg hover:bg-gray-800"
-                    >
-                      <Download className="h-5 w-5 mr-2" />
-                      Download Now
-                    </motion.a>
-                  </>
+                  )
                 ) : (
                   <motion.button
                     whileHover={{ scale: 1.05 }}
@@ -346,7 +387,7 @@ const EbookDetail = () => {
                     onClick={() => navigate('/subscribe')}
                   >
                     <BookOpen className="h-5 w-5 mr-2" />
-                    Subscribe to Access
+                    {checkingSubscription ? 'Checking...' : 'Subscribe to Access'}
                   </motion.button>
                 )}
                 <div className="relative group">
