@@ -8,29 +8,28 @@ import {
   Clock, 
   AlertCircle, 
   Zap,
-  ArrowLeft
+  ArrowLeft,
+  Heart
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function Subscriptions() {
   const navigate = useNavigate();
   const [subscription, setSubscription] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
   const [durationDays, setDurationDays] = useState(30);
   const [isCreating, setIsCreating] = useState(false);
 
   const API_BASE_URL = "https://scrollandshelf.pythonanywhere.com/";
   const token = localStorage.getItem("token");
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    navigate("/login");
-  };
-
   const fetchSubscription = async () => {
     try {
       setIsLoading(true);
       setError(null);
+      setSuccessMessage(null);
 
       if (!token) {
         setError("Please login to view subscriptions");
@@ -64,12 +63,7 @@ export default function Subscriptions() {
         setError(response.data.message || "Failed to check subscription status");
       }
     } catch (err) {
-      if (err.response?.status === 401) {
-        setError("Session expired. Please login again.");
-        setTimeout(() => handleLogout(), 2000);
-      } else {
-        handleApiError(err);
-      }
+      handleApiError(err);
     } finally {
       setIsLoading(false);
     }
@@ -92,6 +86,8 @@ export default function Subscriptions() {
       );
 
       if (response.data.success) {
+        setSuccessMessage(response.data.message || "Subscription created successfully");
+        setTimeout(() => setSuccessMessage(null), 3000);
         await fetchSubscription();
       } else {
         setError(response.data.message || "Failed to create subscription");
@@ -109,7 +105,10 @@ export default function Subscriptions() {
     if (err.response) {
       if (err.response.status === 401) {
         setError("Session expired. Please login again.");
-        setTimeout(() => handleLogout(), 2000);
+        setTimeout(() => {
+          localStorage.removeItem("token");
+          navigate("/login");
+        }, 2000);
       } else if (err.response.status === 404) {
         setError("User not found. Please register or contact support.");
       } else {
@@ -141,17 +140,28 @@ export default function Subscriptions() {
   };
 
   useEffect(() => {
-    fetchSubscription();
-  }, []);
+    if (token) {
+      fetchSubscription();
+    } else {
+      setError("No authentication token found");
+      setIsLoading(false);
+    }
+  }, [token]);
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="bg-white rounded-xl shadow-lg p-6 max-w-md w-full mx-4 animate-fade-in">
-          <div className="flex flex-col items-center justify-center h-64">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-            <p className="mt-4 text-gray-600">Loading subscription details...</p>
+      <div className="bg-gradient-to-br from-white to-gray-50 rounded-3xl shadow-xl p-8 border border-gray-100">
+        <div className="flex items-center mb-8">
+          <div className="bg-blue-100 p-3 rounded-xl mr-4">
+            <Heart className="text-blue-600" />
           </div>
+          <div>
+            <h2 className="text-2xl font-bold text-gray-800">Your Subscription</h2>
+            <p className="text-gray-500">Manage your reading access</p>
+          </div>
+        </div>
+        <div className="flex justify-center items-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
         </div>
       </div>
     );
@@ -159,66 +169,67 @@ export default function Subscriptions() {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="bg-white rounded-xl shadow-lg p-6 max-w-md w-full mx-4 animate-fade-in">
-          <button
-            onClick={() => navigate(-1)}
-            className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
-          >
-            <ArrowLeft className="h-5 w-5 mr-2" />
-            Go Back
-          </button>
-          
-          <div className="text-center p-6">
-            <div className="text-red-500 mb-4 flex flex-col items-center">
-              <AlertCircle className="h-8 w-8 mb-2" />
-              <p className="font-medium">{error}</p>
-              {error.includes("login") && (
-                <p className="text-sm text-gray-500 mt-2">
-                  Redirecting to login...
-                </p>
-              )}
-            </div>
-            {!error.includes("login") && (
-              <div className="flex gap-2 justify-center">
-                <button
-                  onClick={fetchSubscription}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Try Again
-                </button>
-                <button
-                  onClick={handleLogout}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
-                >
-                  Login
-                </button>
-              </div>
-            )}
+      <div className="bg-gradient-to-br from-white to-gray-50 rounded-3xl shadow-xl p-8 border border-gray-100">
+        <div className="flex items-center mb-8">
+          <div className="bg-blue-100 p-3 rounded-xl mr-4">
+            <Heart className="text-blue-600" />
           </div>
+          <div>
+            <h2 className="text-2xl font-bold text-gray-800">Your Subscription</h2>
+            <p className="text-gray-500">Manage your reading access</p>
+          </div>
+        </div>
+        <div className="text-red-500 text-center py-4">
+          <AlertCircle className="h-8 w-8 mx-auto mb-2" />
+          {error}
+          {error.includes("login") ? (
+            <p className="text-sm text-gray-500 mt-2">Redirecting to login...</p>
+          ) : (
+            <button
+              onClick={fetchSubscription}
+              className="mt-4 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700 text-sm"
+            >
+              Retry
+            </button>
+          )}
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="bg-white rounded-xl shadow-lg p-6 max-w-md w-full mx-4 animate-fade-in">
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
-        >
-          <ArrowLeft className="h-5 w-5 mr-2" />
-          Go Back
-        </button>
+    <div className="bg-gradient-to-br from-white to-gray-50 rounded-3xl shadow-xl p-8 border border-gray-100">
+      <div className="flex items-center mb-8">
+        <div className="bg-blue-100 p-3 rounded-xl mr-4">
+          <Heart className="text-blue-600" />
+        </div>
+        <div>
+          <h2 className="text-2xl font-bold text-gray-800">Your Subscription</h2>
+          <p className="text-gray-500">Manage your reading access</p>
+        </div>
+      </div>
 
-        <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-          <Zap className="text-yellow-500" />
-          My Subscription
-        </h2>
+      <AnimatePresence>
+        {successMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="mb-6 p-3 bg-green-100 text-green-700 rounded-lg"
+          >
+            {successMessage}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2 }}
+        className="bg-white p-6 rounded-xl shadow-sm border border-gray-200"
+      >
         {subscription ? (
-          <div className="space-y-5">
+          <div className="space-y-6">
             <div className="bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-lg border border-green-200">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-full bg-green-100 text-green-600">
@@ -254,14 +265,12 @@ export default function Subscriptions() {
               </div>
             </div>
 
-            <div className="pt-4">
-              <button
-                onClick={fetchSubscription}
-                className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm"
-              >
-                Refresh Status
-              </button>
-            </div>
+            <button
+              onClick={fetchSubscription}
+              className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm"
+            >
+              Refresh Status
+            </button>
           </div>
         ) : (
           <div className="space-y-6">
@@ -274,30 +283,25 @@ export default function Subscriptions() {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Subscription Duration
                 </label>
-                <div className="relative">
-                  <select
-                    value={durationDays}
-                    onChange={(e) => setDurationDays(parseInt(e.target.value))}
-                    className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
-                  >
-                    <option value="7">7 days</option>
-                    <option value="30">30 days</option>
-                    <option value="90">90 days</option>
-                    <option value="180">180 days</option>
-                    <option value="365">365 days</option>
-                  </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                    <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                      <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                    </svg>
-                  </div>
-                </div>
+                <select
+                  value={durationDays}
+                  onChange={(e) => setDurationDays(parseInt(e.target.value))}
+                  className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="7">7 days</option>
+                  <option value="30">30 days</option>
+                  <option value="90">90 days</option>
+                  <option value="180">180 days</option>
+                  <option value="365">365 days</option>
+                </select>
               </div>
 
-              <button
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={createSubscription}
                 disabled={isCreating}
                 className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all shadow-md disabled:opacity-70 flex justify-center items-center gap-2"
@@ -313,11 +317,11 @@ export default function Subscriptions() {
                     Activate Subscription
                   </>
                 )}
-              </button>
+              </motion.button>
             </div>
           </div>
         )}
-      </div>
+      </motion.div>
     </div>
   );
 }
