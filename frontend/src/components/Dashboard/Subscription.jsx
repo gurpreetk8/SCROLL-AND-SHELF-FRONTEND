@@ -7,8 +7,7 @@ import {
   CheckCircle, 
   Clock, 
   AlertCircle, 
-  Zap,
-  ArrowLeft
+  Zap
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -140,10 +139,10 @@ export default function Subscriptions() {
 
   if (isLoading) {
     return (
-      <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-lg p-6 max-w-md mx-auto">
-        <div className="flex flex-col items-center justify-center h-64">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-          <p className="mt-4 text-gray-600">Loading subscription details...</p>
+      <div className="bg-white rounded-lg shadow p-6">
+        <div className="flex items-center space-x-3">
+          <Loader2 className="h-5 w-5 animate-spin text-blue-500" />
+          <p className="text-gray-600">Loading subscription details...</p>
         </div>
       </div>
     );
@@ -151,37 +150,37 @@ export default function Subscriptions() {
 
   if (error) {
     return (
-      <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-lg p-6 max-w-md mx-auto">
-        <div className="text-center p-6">
-          <div className="text-red-500 mb-4 flex flex-col items-center">
-            <AlertCircle className="h-8 w-8 mb-2" />
+      <div className="bg-white rounded-lg shadow p-6">
+        <div className="text-red-500 flex items-start space-x-2">
+          <AlertCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
+          <div>
             <p className="font-medium">{error}</p>
+            <button
+              onClick={fetchSubscription}
+              className="mt-2 px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
+            >
+              Try Again
+            </button>
           </div>
-          <button
-            onClick={fetchSubscription}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Try Again
-          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-lg p-6 max-w-md mx-auto">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-        <Zap className="text-yellow-500" />
-        My Subscription
+    <div className="bg-white rounded-lg shadow p-6">
+      <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center space-x-2">
+        <Zap className="text-yellow-500 h-5 w-5" />
+        <span>My Subscription</span>
       </h2>
 
       <AnimatePresence>
         {successMessage && (
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="mb-4 p-3 bg-green-100 text-green-700 rounded-lg"
+            className="mb-4 p-3 bg-green-100 text-green-700 rounded text-sm"
           >
             {successMessage}
           </motion.div>
@@ -192,30 +191,30 @@ export default function Subscriptions() {
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="space-y-5"
+          className="space-y-4"
         >
-          <div className={`p-4 rounded-lg border ${
+          <div className={`p-3 rounded border ${
             subscription.status === "active" 
               ? "bg-green-50 border-green-200" 
               : "bg-blue-50 border-blue-200"
           }`}>
-            <div className="flex items-center gap-3">
-              <div className={`p-2 rounded-full ${
+            <div className="flex items-center space-x-3">
+              <div className={`p-1.5 rounded-full ${
                 subscription.status === "active"
                   ? "bg-green-100 text-green-600"
                   : "bg-blue-100 text-blue-600"
               }`}>
                 {subscription.status === "active" ? (
-                  <CheckCircle className="h-5 w-5" />
+                  <CheckCircle className="h-4 w-4" />
                 ) : (
-                  <Clock className="h-5 w-5" />
+                  <Clock className="h-4 w-4" />
                 )}
               </div>
               <div>
                 <p className="font-medium text-gray-700 capitalize">
                   {subscription.status}
                 </p>
-                <p className="text-sm text-gray-500">
+                <p className="text-xs text-gray-500">
                   {subscription.status === "active" && (
                     <>{calculateDaysRemaining(subscription.endDate)} days remaining</>
                   )}
@@ -224,22 +223,22 @@ export default function Subscriptions() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-              <p className="text-sm text-gray-500 flex items-center gap-1">
-                <Calendar className="h-4 w-4" />
-                Start Date
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-gray-50 p-3 rounded border border-gray-200">
+              <p className="text-xs text-gray-500 flex items-center space-x-1">
+                <Calendar className="h-3 w-3" />
+                <span>Start Date</span>
               </p>
-              <p className="font-medium text-gray-800 mt-1">
+              <p className="font-medium text-gray-800 mt-1 text-sm">
                 {formatDate(subscription.startDate)}
               </p>
             </div>
-            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-              <p className="text-sm text-gray-500 flex items-center gap-1">
-                <Calendar className="h-4 w-4" />
-                End Date
+            <div className="bg-gray-50 p-3 rounded border border-gray-200">
+              <p className="text-xs text-gray-500 flex items-center space-x-1">
+                <Calendar className="h-3 w-3" />
+                <span>End Date</span>
               </p>
-              <p className="font-medium text-gray-800 mt-1">
+              <p className="font-medium text-gray-800 mt-1 text-sm">
                 {formatDate(subscription.endDate)}
               </p>
             </div>
@@ -249,56 +248,47 @@ export default function Subscriptions() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="space-y-6"
+          className="space-y-4"
         >
-          <div className="text-center py-4">
-            <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 inline-flex items-center gap-2">
-              <Clock className="h-5 w-5 text-yellow-600" />
-              <p className="text-gray-700">No active subscription found</p>
-            </div>
+          <div className="bg-yellow-50 p-3 rounded border border-yellow-200 flex items-center space-x-2">
+            <Clock className="h-4 w-4 text-yellow-600 flex-shrink-0" />
+            <p className="text-gray-700 text-sm">No active subscription found</p>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
                 Subscription Duration
               </label>
-              <div className="relative">
-                <select
-                  value={durationDays}
-                  onChange={(e) => setDurationDays(parseInt(e.target.value))}
-                  className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
-                >
-                  <option value="7">7 days</option>
-                  <option value="30">30 days</option>
-                  <option value="90">90 days</option>
-                  <option value="180">180 days</option>
-                  <option value="365">365 days</option>
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
-                  <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                    <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                  </svg>
-                </div>
-              </div>
+              <select
+                value={durationDays}
+                onChange={(e) => setDurationDays(parseInt(e.target.value))}
+                className="w-full border border-gray-300 p-2 rounded text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="7">7 days</option>
+                <option value="30">30 days</option>
+                <option value="90">90 days</option>
+                <option value="180">180 days</option>
+                <option value="365">365 days</option>
+              </select>
             </div>
 
             <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.99 }}
               onClick={createSubscription}
               disabled={isCreating}
-              className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all shadow-md disabled:opacity-70 flex justify-center items-center gap-2"
+              className="w-full px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 disabled:opacity-70 flex items-center justify-center space-x-2"
             >
               {isCreating ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Processing...
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  <span>Processing...</span>
                 </>
               ) : (
                 <>
-                  <Zap className="h-4 w-4" />
-                  Create Subscription
+                  <Zap className="h-3 w-3" />
+                  <span>Create Subscription</span>
                 </>
               )}
             </motion.button>
