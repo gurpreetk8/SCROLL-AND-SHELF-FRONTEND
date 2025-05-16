@@ -8,8 +8,7 @@ import {
   Clock, 
   AlertCircle, 
   Zap,
-  ArrowLeft,
-  Heart
+  ArrowLeft
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -22,7 +21,7 @@ export default function Subscriptions() {
   const [durationDays, setDurationDays] = useState(30);
   const [isCreating, setIsCreating] = useState(false);
 
-  const API_BASE_URL = "https://scrollandshelf.pythonanywhere.com/";
+  const API_BASE_URL = "https://scrollandshelf.pythonanywhere.com/subscriptions/";
   const token = localStorage.getItem("token");
 
   const fetchSubscription = async () => {
@@ -31,14 +30,8 @@ export default function Subscriptions() {
       setError(null);
       setSuccessMessage(null);
 
-      if (!token) {
-        setError("Please login to view subscriptions");
-        setIsLoading(false);
-        return;
-      }
-
       const response = await axios.post(
-        `${API_BASE_URL}check_subscription/`,
+        `${API_BASE_URL}pre_book_subscription/`,
         {},
         {
           headers: {
@@ -49,18 +42,14 @@ export default function Subscriptions() {
       );
 
       if (response.data.success) {
-        if (response.data.has_subscription) {
-          setSubscription({
-            status: "active",
-            message: "Your subscription is active",
-            startDate: response.data.start_date,
-            endDate: response.data.end_date,
-          });
-        } else {
-          setSubscription(null);
-        }
+        setSubscription({
+          status: response.data.message.includes("already") ? "active" : "created",
+          message: response.data.message,
+          startDate: response.data.start_date,
+          endDate: response.data.end_date,
+        });
       } else {
-        setError(response.data.message || "Failed to check subscription status");
+        setError(response.data.message || "Failed to fetch subscription");
       }
     } catch (err) {
       handleApiError(err);
@@ -86,9 +75,14 @@ export default function Subscriptions() {
       );
 
       if (response.data.success) {
-        setSuccessMessage(response.data.message || "Subscription created successfully");
+        setSuccessMessage("Subscription created successfully!");
         setTimeout(() => setSuccessMessage(null), 3000);
-        await fetchSubscription();
+        setSubscription({
+          status: "active",
+          message: response.data.message,
+          startDate: response.data.start_date,
+          endDate: response.data.end_date,
+        });
       } else {
         setError(response.data.message || "Failed to create subscription");
       }
@@ -105,12 +99,8 @@ export default function Subscriptions() {
     if (err.response) {
       if (err.response.status === 401) {
         setError("Session expired. Please login again.");
-        setTimeout(() => {
-          localStorage.removeItem("token");
-          navigate("/login");
-        }, 2000);
       } else if (err.response.status === 404) {
-        setError("User not found. Please register or contact support.");
+        setError("User not found");
       } else {
         setError(err.response.data?.message || `Server error: ${err.response.status}`);
       }
@@ -122,7 +112,7 @@ export default function Subscriptions() {
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return "Not available";
+    if (!dateString) return "Not set";
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
       year: "numeric",
@@ -136,7 +126,7 @@ export default function Subscriptions() {
     const end = new Date(endDate);
     const today = new Date();
     const diffTime = end - today;
-    return Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   };
 
   useEffect(() => {
@@ -150,18 +140,10 @@ export default function Subscriptions() {
 
   if (isLoading) {
     return (
-      <div className="bg-gradient-to-br from-white to-gray-50 rounded-3xl shadow-xl p-8 border border-gray-100">
-        <div className="flex items-center mb-8">
-          <div className="bg-blue-100 p-3 rounded-xl mr-4">
-            <Heart className="text-blue-600" />
-          </div>
-          <div>
-            <h2 className="text-2xl font-bold text-gray-800">Your Subscription</h2>
-            <p className="text-gray-500">Manage your reading access</p>
-          </div>
-        </div>
-        <div className="flex justify-center items-center h-64">
+      <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-lg p-6 max-w-md mx-auto">
+        <div className="flex flex-col items-center justify-center h-64">
           <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+          <p className="mt-4 text-gray-600">Loading subscription details...</p>
         </div>
       </div>
     );
@@ -169,45 +151,29 @@ export default function Subscriptions() {
 
   if (error) {
     return (
-      <div className="bg-gradient-to-br from-white to-gray-50 rounded-3xl shadow-xl p-8 border border-gray-100">
-        <div className="flex items-center mb-8">
-          <div className="bg-blue-100 p-3 rounded-xl mr-4">
-            <Heart className="text-blue-600" />
+      <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-lg p-6 max-w-md mx-auto">
+        <div className="text-center p-6">
+          <div className="text-red-500 mb-4 flex flex-col items-center">
+            <AlertCircle className="h-8 w-8 mb-2" />
+            <p className="font-medium">{error}</p>
           </div>
-          <div>
-            <h2 className="text-2xl font-bold text-gray-800">Your Subscription</h2>
-            <p className="text-gray-500">Manage your reading access</p>
-          </div>
-        </div>
-        <div className="text-red-500 text-center py-4">
-          <AlertCircle className="h-8 w-8 mx-auto mb-2" />
-          {error}
-          {error.includes("login") ? (
-            <p className="text-sm text-gray-500 mt-2">Redirecting to login...</p>
-          ) : (
-            <button
-              onClick={fetchSubscription}
-              className="mt-4 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700 text-sm"
-            >
-              Retry
-            </button>
-          )}
+          <button
+            onClick={fetchSubscription}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Try Again
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-gradient-to-br from-white to-gray-50 rounded-3xl shadow-xl p-8 border border-gray-100">
-      <div className="flex items-center mb-8">
-        <div className="bg-blue-100 p-3 rounded-xl mr-4">
-          <Heart className="text-blue-600" />
-        </div>
-        <div>
-          <h2 className="text-2xl font-bold text-gray-800">Your Subscription</h2>
-          <p className="text-gray-500">Manage your reading access</p>
-        </div>
-      </div>
+    <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-lg p-6 max-w-md mx-auto">
+      <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+        <Zap className="text-yellow-500" />
+        My Subscription
+      </h2>
 
       <AnimatePresence>
         {successMessage && (
@@ -215,81 +181,93 @@ export default function Subscriptions() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="mb-6 p-3 bg-green-100 text-green-700 rounded-lg"
+            className="mb-4 p-3 bg-green-100 text-green-700 rounded-lg"
           >
             {successMessage}
           </motion.div>
         )}
       </AnimatePresence>
 
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.2 }}
-        className="bg-white p-6 rounded-xl shadow-sm border border-gray-200"
-      >
-        {subscription ? (
-          <div className="space-y-6">
-            <div className="bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-lg border border-green-200">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-full bg-green-100 text-green-600">
+      {subscription ? (
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="space-y-5"
+        >
+          <div className={`p-4 rounded-lg border ${
+            subscription.status === "active" 
+              ? "bg-green-50 border-green-200" 
+              : "bg-blue-50 border-blue-200"
+          }`}>
+            <div className="flex items-center gap-3">
+              <div className={`p-2 rounded-full ${
+                subscription.status === "active"
+                  ? "bg-green-100 text-green-600"
+                  : "bg-blue-100 text-blue-600"
+              }`}>
+                {subscription.status === "active" ? (
                   <CheckCircle className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="font-medium text-gray-700">Active Subscription</p>
-                  <p className="text-sm text-gray-500">
-                    {calculateDaysRemaining(subscription.endDate)} days remaining
-                  </p>
-                </div>
+                ) : (
+                  <Clock className="h-5 w-5" />
+                )}
               </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                <p className="text-sm text-gray-500 flex items-center gap-1">
-                  <Calendar className="h-4 w-4" />
-                  Start Date
-                </p>
-                <p className="font-medium text-gray-800 mt-1">
-                  {formatDate(subscription.startDate)}
-                </p>
-              </div>
-              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                <p className="text-sm text-gray-500 flex items-center gap-1">
-                  <Calendar className="h-4 w-4" />
-                  End Date
-                </p>
-                <p className="font-medium text-gray-800 mt-1">
-                  {formatDate(subscription.endDate)}
-                </p>
-              </div>
-            </div>
-
-            <button
-              onClick={fetchSubscription}
-              className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm"
-            >
-              Refresh Status
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            <div className="text-center py-4">
-              <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 inline-flex items-center gap-2">
-                <Clock className="h-5 w-5 text-yellow-600" />
-                <p className="text-gray-700">No active subscription found</p>
-              </div>
-            </div>
-
-            <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Subscription Duration
-                </label>
+                <p className="font-medium text-gray-700 capitalize">
+                  {subscription.status}
+                </p>
+                <p className="text-sm text-gray-500">
+                  {subscription.status === "active" && (
+                    <>{calculateDaysRemaining(subscription.endDate)} days remaining</>
+                  )}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <p className="text-sm text-gray-500 flex items-center gap-1">
+                <Calendar className="h-4 w-4" />
+                Start Date
+              </p>
+              <p className="font-medium text-gray-800 mt-1">
+                {formatDate(subscription.startDate)}
+              </p>
+            </div>
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <p className="text-sm text-gray-500 flex items-center gap-1">
+                <Calendar className="h-4 w-4" />
+                End Date
+              </p>
+              <p className="font-medium text-gray-800 mt-1">
+                {formatDate(subscription.endDate)}
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      ) : (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="space-y-6"
+        >
+          <div className="text-center py-4">
+            <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 inline-flex items-center gap-2">
+              <Clock className="h-5 w-5 text-yellow-600" />
+              <p className="text-gray-700">No active subscription found</p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Subscription Duration
+              </label>
+              <div className="relative">
                 <select
                   value={durationDays}
                   onChange={(e) => setDurationDays(parseInt(e.target.value))}
-                  className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
                 >
                   <option value="7">7 days</option>
                   <option value="30">30 days</option>
@@ -297,31 +275,36 @@ export default function Subscriptions() {
                   <option value="180">180 days</option>
                   <option value="365">365 days</option>
                 </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                  <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                    <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                  </svg>
+                </div>
               </div>
-
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={createSubscription}
-                disabled={isCreating}
-                className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all shadow-md disabled:opacity-70 flex justify-center items-center gap-2"
-              >
-                {isCreating ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <Zap className="h-4 w-4" />
-                    Activate Subscription
-                  </>
-                )}
-              </motion.button>
             </div>
+
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={createSubscription}
+              disabled={isCreating}
+              className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all shadow-md disabled:opacity-70 flex justify-center items-center gap-2"
+            >
+              {isCreating ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <Zap className="h-4 w-4" />
+                  Create Subscription
+                </>
+              )}
+            </motion.button>
           </div>
-        )}
-      </motion.div>
+        </motion.div>
+      )}
     </div>
   );
 }
