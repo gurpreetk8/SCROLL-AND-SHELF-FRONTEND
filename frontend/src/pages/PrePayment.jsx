@@ -43,7 +43,7 @@ const PrePayment = () => {
 
                 // Step 1: Create pre-booking
                 const preBookResponse = await axios.post(
-                    'https://scrollandshelf.pythonanywhere.com/subscriptions/pre_book_subscription/',
+                    'https://scrollandshelf.pythonanywhere.com/subscriptions/create_subscription/',
                     {},
                     {
                         headers: {

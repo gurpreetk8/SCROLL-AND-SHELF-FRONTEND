@@ -52,7 +52,7 @@ const SubscriptionOverview = () => {
                                     </span>
                                 </div>
                                 <p className="text-gray-600 max-w-xl mx-auto">
-                                    Full access to our premium library with new titles added daily. Cancel anytime.
+                                    Full access to our premium library with new titles added daily. 
                                 </p>
                             </div>
 
