@@ -9,28 +9,32 @@ import {
   AlertCircle, 
   Zap
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 export default function Subscriptions() {
   const navigate = useNavigate();
   const [subscription, setSubscription] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [successMessage, setSuccessMessage] = useState(null);
   const [durationDays, setDurationDays] = useState(30);
   const [isCreating, setIsCreating] = useState(false);
 
-  const API_BASE_URL = "https://scrollandshelf.pythonanywhere.com/subscriptions/";
+  const API_BASE_URL = "https://scrollandshelf.pythonanywhere.com/";
   const token = localStorage.getItem("token");
 
   const fetchSubscription = async () => {
     try {
       setIsLoading(true);
       setError(null);
-      setSuccessMessage(null);
+
+      if (!token) {
+        setError("Please login to view subscriptions");
+        setIsLoading(false);
+        return;
+      }
 
       const response = await axios.post(
-        `${API_BASE_URL}pre_book_subscription/`,
+        `${API_BASE_URL}check_subscription/`,
         {},
         {
           headers: {
@@ -41,14 +45,33 @@ export default function Subscriptions() {
       );
 
       if (response.data.success) {
-        setSubscription({
-          status: response.data.message.includes("already") ? "active" : "created",
-          message: response.data.message,
-          startDate: response.data.start_date,
-          endDate: response.data.end_date,
-        });
+        if (response.data.has_subscription) {
+          // Get full subscription details if exists
+          const subResponse = await axios.post(
+            `${API_BASE_URL}pre_book_subscription/`,
+            {},
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+          
+          if (subResponse.data.success) {
+            setSubscription({
+              id: subResponse.data.subscription_id,
+              status: "active",
+              startDate: subResponse.data.start_date,
+              endDate: subResponse.data.end_date,
+              message: subResponse.data.message
+            });
+          }
+        } else {
+          setSubscription(null);
+        }
       } else {
-        setError(response.data.message || "Failed to fetch subscription");
+        setError(response.data.message || "Failed to check subscription status");
       }
     } catch (err) {
       handleApiError(err);
@@ -74,13 +97,13 @@ export default function Subscriptions() {
       );
 
       if (response.data.success) {
-        setSuccessMessage("Subscription created successfully!");
-        setTimeout(() => setSuccessMessage(null), 3000);
+        // Update local subscription state with new data
         setSubscription({
+          id: response.data.subscription_id,
           status: "active",
-          message: response.data.message,
           startDate: response.data.start_date,
           endDate: response.data.end_date,
+          message: response.data.message
         });
       } else {
         setError(response.data.message || "Failed to create subscription");
@@ -98,8 +121,12 @@ export default function Subscriptions() {
     if (err.response) {
       if (err.response.status === 401) {
         setError("Session expired. Please login again.");
+        setTimeout(() => {
+          localStorage.removeItem("token");
+          navigate("/login");
+        }, 2000);
       } else if (err.response.status === 404) {
-        setError("User not found");
+        setError("User not found. Please register or contact support.");
       } else {
         setError(err.response.data?.message || `Server error: ${err.response.status}`);
       }
@@ -114,9 +141,9 @@ export default function Subscriptions() {
     if (!dateString) return "Not set";
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
+      month: "short",
       day: "numeric",
+      year: "numeric",
     });
   };
 
@@ -125,42 +152,42 @@ export default function Subscriptions() {
     const end = new Date(endDate);
     const today = new Date();
     const diffTime = end - today;
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
   };
 
   useEffect(() => {
     if (token) {
       fetchSubscription();
     } else {
-      setError("No authentication token found");
+      setError("Please login to view subscriptions");
       setIsLoading(false);
     }
   }, [token]);
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-lg shadow p-6">
-        <div className="flex items-center space-x-3">
-          <Loader2 className="h-5 w-5 animate-spin text-blue-500" />
-          <p className="text-gray-600">Loading subscription details...</p>
-        </div>
+      <div className="flex items-center space-x-2 p-4">
+        <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
+        <span className="text-sm">Loading subscription...</span>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-white rounded-lg shadow p-6">
-        <div className="text-red-500 flex items-start space-x-2">
-          <AlertCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
+      <div className="p-4">
+        <div className="flex items-start space-x-2 text-red-500">
+          <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
           <div>
-            <p className="font-medium">{error}</p>
-            <button
-              onClick={fetchSubscription}
-              className="mt-2 px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
-            >
-              Try Again
-            </button>
+            <p className="text-sm">{error}</p>
+            {!error.includes("login") && (
+              <button
+                onClick={fetchSubscription}
+                className="mt-2 px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700"
+              >
+                Try Again
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -168,78 +195,41 @@ export default function Subscriptions() {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center space-x-2">
-        <Zap className="text-yellow-500 h-5 w-5" />
-        <span>My Subscription</span>
-      </h2>
-
-      <AnimatePresence>
-        {successMessage && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            className="mb-4 p-3 bg-green-100 text-green-700 rounded text-sm"
-          >
-            {successMessage}
-          </motion.div>
-        )}
-      </AnimatePresence>
+    <div className="p-4">
+      <h2 className="text-lg font-semibold mb-4">My Subscription</h2>
 
       {subscription ? (
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="space-y-4"
+          className="space-y-3"
         >
-          <div className={`p-3 rounded border ${
-            subscription.status === "active" 
-              ? "bg-green-50 border-green-200" 
-              : "bg-blue-50 border-blue-200"
-          }`}>
-            <div className="flex items-center space-x-3">
-              <div className={`p-1.5 rounded-full ${
-                subscription.status === "active"
-                  ? "bg-green-100 text-green-600"
-                  : "bg-blue-100 text-blue-600"
-              }`}>
-                {subscription.status === "active" ? (
-                  <CheckCircle className="h-4 w-4" />
-                ) : (
-                  <Clock className="h-4 w-4" />
-                )}
-              </div>
-              <div>
-                <p className="font-medium text-gray-700 capitalize">
-                  {subscription.status}
-                </p>
-                <p className="text-xs text-gray-500">
-                  {subscription.status === "active" && (
-                    <>{calculateDaysRemaining(subscription.endDate)} days remaining</>
-                  )}
-                </p>
-              </div>
+          <div className="flex items-center space-x-2 p-3 bg-green-50 rounded border border-green-200">
+            <CheckCircle className="h-4 w-4 text-green-600" />
+            <div>
+              <span className="text-sm font-medium">Active Subscription</span>
+              {subscription.message && (
+                <p className="text-xs text-gray-500 mt-1">{subscription.message}</p>
+              )}
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-gray-50 p-3 rounded border border-gray-200">
+          <div className="grid grid-cols-2 gap-2">
+            <div className="p-2 bg-gray-50 rounded border border-gray-200">
               <p className="text-xs text-gray-500 flex items-center space-x-1">
                 <Calendar className="h-3 w-3" />
                 <span>Start Date</span>
               </p>
-              <p className="font-medium text-gray-800 mt-1 text-sm">
-                {formatDate(subscription.startDate)}
-              </p>
+              <p className="text-sm mt-1">{formatDate(subscription.startDate)}</p>
             </div>
-            <div className="bg-gray-50 p-3 rounded border border-gray-200">
+            <div className="p-2 bg-gray-50 rounded border border-gray-200">
               <p className="text-xs text-gray-500 flex items-center space-x-1">
                 <Calendar className="h-3 w-3" />
                 <span>End Date</span>
               </p>
-              <p className="font-medium text-gray-800 mt-1 text-sm">
-                {formatDate(subscription.endDate)}
+              <p className="text-sm mt-1">{formatDate(subscription.endDate)}</p>
+              <p className="text-xs text-gray-500 mt-1">
+                {calculateDaysRemaining(subscription.endDate)} days remaining
               </p>
             </div>
           </div>
@@ -250,20 +240,18 @@ export default function Subscriptions() {
           animate={{ opacity: 1 }}
           className="space-y-4"
         >
-          <div className="bg-yellow-50 p-3 rounded border border-yellow-200 flex items-center space-x-2">
-            <Clock className="h-4 w-4 text-yellow-600 flex-shrink-0" />
-            <p className="text-gray-700 text-sm">No active subscription found</p>
+          <div className="flex items-center space-x-2 p-3 bg-yellow-50 rounded border border-yellow-200">
+            <Clock className="h-4 w-4 text-yellow-600" />
+            <span className="text-sm">No active subscription</span>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-2">
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
-                Subscription Duration
-              </label>
+              <label className="block text-xs text-gray-500 mb-1">Subscription Duration</label>
               <select
                 value={durationDays}
                 onChange={(e) => setDurationDays(parseInt(e.target.value))}
-                className="w-full border border-gray-300 p-2 rounded text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full p-2 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="7">7 days</option>
                 <option value="30">30 days</option>
@@ -278,7 +266,7 @@ export default function Subscriptions() {
               whileTap={{ scale: 0.99 }}
               onClick={createSubscription}
               disabled={isCreating}
-              className="w-full px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 disabled:opacity-70 flex items-center justify-center space-x-2"
+              className="w-full py-2 px-4 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 disabled:opacity-70 flex items-center justify-center space-x-2"
             >
               {isCreating ? (
                 <>
@@ -288,7 +276,7 @@ export default function Subscriptions() {
               ) : (
                 <>
                   <Zap className="h-3 w-3" />
-                  <span>Create Subscription</span>
+                  <span>Subscribe Now</span>
                 </>
               )}
             </motion.button>
