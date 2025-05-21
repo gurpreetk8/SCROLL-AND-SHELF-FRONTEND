@@ -22,7 +22,6 @@ const PrePayment = () => {
         document.body.appendChild(script);
 
         return () => {
-
             document.body.removeChild(script);
         };
     }, []);
@@ -41,27 +40,36 @@ const PrePayment = () => {
                 const userData = JSON.parse(userString);
                 setUser(userData);
 
-                // Step 1: Create pre-booking
-                const preBookResponse = await axios.post(
+                // Step 1: Create subscription with required parameters
+                const subscriptionResponse = await axios.post(
                     'https://scrollandshelf.pythonanywhere.com/subscriptions/create_subscription/',
-                    {},
+                    {
+                        duration_days: 30,  // Default duration
+                        amount_paid: amount // The amount being charged
+                    },
                     {
                         headers: {
                             'Authorization': `Bearer ${token}`,
-                            'X-CSRFToken': getCookie('csrftoken')
+                            'X-CSRFToken': getCookie('csrftoken'),
+                            'Content-Type': 'application/json'
                         }
                     }
                 );
 
-                if (!preBookResponse.data.success) {
-                    throw new Error(preBookResponse.data.message);
+                if (!subscriptionResponse.data.success) {
+                    throw new Error(subscriptionResponse.data.message);
                 }
 
-                setSubscriptionId(preBookResponse.data.subscription_id);
+                setSubscriptionId(subscriptionResponse.data.subscription_id);
                 setLoading(false);
 
             } catch (err) {
-                setError(err.message);
+                console.error("Subscription creation error:", {
+                    message: err.message,
+                    response: err.response?.data,
+                    status: err.response?.status
+                });
+                setError(err.response?.data?.message || err.message || "Failed to create subscription");
                 setLoading(false);
             }
         };
@@ -138,7 +146,18 @@ const PrePayment = () => {
     };
 
     const getCookie = (name) => {
-        // Cookie retrieval implementation
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
     };
 
     if (loading) {
