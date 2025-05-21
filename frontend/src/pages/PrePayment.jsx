@@ -43,14 +43,13 @@ const PrePayment = () => {
                 const subscriptionResponse = await axios.post(
                     'https://scrollandshelf.pythonanywhere.com/subscriptions/create_subscription/',
                     {
-                        duration_days: 30,  // Required field
-                        amount_paid: amount // Required field
+                        duration_days: 30,
+                        amount_paid: amount
                     },
                     {
                         headers: {
                             'Authorization': `Bearer ${token}`,
-                            'X-CSRFToken': getCookie('csrftoken'),
-                            'Content-Type': 'application/json' // Required header
+                            'Content-Type': 'application/json' // only necessary header
                         }
                     }
                 );
