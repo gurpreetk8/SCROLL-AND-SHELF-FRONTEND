@@ -20,7 +20,7 @@ export default function Subscriptions() {
   const [durationDays, setDurationDays] = useState(30);
   const [isCreating, setIsCreating] = useState(false);
 
-  const API_BASE_URL = "https://scrollandshelf.pythonanywhere.com/";
+  const API_BASE_URL = "https://scrollandshelf.pythonanywhere.com/subscriptions/";
   const token = localStorage.getItem("token");
 
   const fetchSubscription = async () => {
@@ -29,9 +29,8 @@ export default function Subscriptions() {
       setError(null);
       setSuccessMessage(null);
 
-      // First check subscription status
-      const checkResponse = await axios.post(
-        `${API_BASE_URL}check_subscription/`,
+      const response = await axios.post(
+        `${API_BASE_URL}pre_book_subscription/`,
         {},
         {
           headers: {
@@ -41,33 +40,15 @@ export default function Subscriptions() {
         }
       );
 
-      if (checkResponse.data.success) {
-        if (checkResponse.data.has_subscription) {
-          // If subscription exists, get full details
-          const subResponse = await axios.post(
-            `${API_BASE_URL}pre_book_subscription/`,
-            {},
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
-              },
-            }
-          );
-
-          if (subResponse.data.success) {
-            setSubscription({
-              status: "active",
-              message: subResponse.data.message,
-              startDate: subResponse.data.start_date,
-              endDate: subResponse.data.end_date,
-            });
-          }
-        } else {
-          setSubscription(null);
-        }
+      if (response.data.success) {
+        setSubscription({
+          status: response.data.message.includes("already") ? "active" : "created",
+          message: response.data.message,
+          startDate: response.data.start_date,
+          endDate: response.data.end_date,
+        });
       } else {
-        setError(checkResponse.data.message || "Failed to check subscription status");
+        setError(response.data.message || "Failed to fetch subscription");
       }
     } catch (err) {
       handleApiError(err);
@@ -93,9 +74,14 @@ export default function Subscriptions() {
       );
 
       if (response.data.success) {
-        setSuccessMessage(response.data.message || "Subscription created successfully!");
+        setSuccessMessage("Subscription created successfully!");
         setTimeout(() => setSuccessMessage(null), 3000);
-        await fetchSubscription(); // Refresh subscription data
+        setSubscription({
+          status: "active",
+          message: response.data.message,
+          startDate: response.data.start_date,
+          endDate: response.data.end_date,
+        });
       } else {
         setError(response.data.message || "Failed to create subscription");
       }
@@ -302,7 +288,7 @@ export default function Subscriptions() {
               ) : (
                 <>
                   <Zap className="h-3 w-3" />
-                  <span>Subscribe Now</span>
+                  <span>Create Subscription</span>
                 </>
               )}
             </motion.button>
