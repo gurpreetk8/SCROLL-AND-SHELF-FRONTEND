@@ -55,8 +55,12 @@ const PrePayment = () => {
                 );
 
                 if (!subscriptionResponse.data.success) {
+                    if (subscriptionResponse.data.message === "Active subscription already exists") {
+                        navigate('/subscription-active'); // Redirect to a relevant page
+                        return;
+                    }
                     throw new Error(subscriptionResponse.data.message);
-                }
+        }
 
                 setSubscriptionId(subscriptionResponse.data.subscription_id);
                 setLoading(false);
