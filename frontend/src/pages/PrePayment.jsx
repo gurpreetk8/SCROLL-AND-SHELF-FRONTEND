@@ -11,7 +11,6 @@ const PrePayment = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [subscriptionId, setSubscriptionId] = useState(null);
-    const [paymentDetails, setPaymentDetails] = useState(null);
     const [user, setUser] = useState(null);
     const amount = 199;
 
@@ -44,14 +43,14 @@ const PrePayment = () => {
                 const subscriptionResponse = await axios.post(
                     'https://scrollandshelf.pythonanywhere.com/subscriptions/create_subscription/',
                     {
-                        duration_days: 30,  // Default duration
-                        amount_paid: amount // The amount being charged
+                        duration_days: 30,  // Required field
+                        amount_paid: amount // Required field
                     },
                     {
                         headers: {
                             'Authorization': `Bearer ${token}`,
                             'X-CSRFToken': getCookie('csrftoken'),
-                            'Content-Type': 'application/json'
+                            'Content-Type': 'application/json' // Required header
                         }
                     }
                 );
@@ -64,12 +63,14 @@ const PrePayment = () => {
                 setLoading(false);
 
             } catch (err) {
-                console.error("Subscription creation error:", {
-                    message: err.message,
-                    response: err.response?.data,
-                    status: err.response?.status
+                const errorMessage = err.response?.data?.message || 
+                                  err.message || 
+                                  "Failed to initialize subscription";
+                console.error("Subscription Error:", {
+                    message: errorMessage,
+                    response: err.response?.data
                 });
-                setError(err.response?.data?.message || err.message || "Failed to create subscription");
+                setError(errorMessage);
                 setLoading(false);
             }
         };
@@ -124,7 +125,7 @@ const PrePayment = () => {
                         if (verificationResponse.data.success) {
                             navigate('/subscription-success');
                         } else {
-                            throw new Error('Payment verification failed');
+                            throw new Error(verificationResponse.data.message || 'Payment verification failed');
                         }
                     } catch (err) {
                         setError(err.message);
