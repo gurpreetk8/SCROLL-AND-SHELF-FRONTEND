@@ -58,6 +58,7 @@ const PrePayment = () => {
                     if (subscriptionResponse.data.message === "Active subscription already exists") {
                         setModalMessage("You already have an active subscription. Redirecting to homepage...");
                         setShowModal(true);
+                        setLoading(false);
                         return;
                     }
                     throw new Error(subscriptionResponse.data.message);
