@@ -12,6 +12,8 @@ const PrePayment = () => {
     const [error, setError] = useState(null);
     const [subscriptionId, setSubscriptionId] = useState(null);
     const [user, setUser] = useState(null);
+    const [showModal, setShowModal] = useState(false);
+    const [modalMessage, setModalMessage] = useState('');
     const amount = 199;
 
     useEffect(() => {
@@ -54,7 +56,9 @@ const PrePayment = () => {
 
                 if (!subscriptionResponse.data.success) {
                     if (subscriptionResponse.data.message === "Active subscription already exists") {
-                        navigate('/');
+                        setModalMessage("You already have an active subscription. Redirecting to homepage...");
+                        setShowModal(true);
+                        setTimeout(() => navigate('/'), 3000);
                         return;
                     }
                     throw new Error(subscriptionResponse.data.message);
@@ -198,6 +202,16 @@ const PrePayment = () => {
     return (
         <>
             <Navbar />
+
+            {showModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-6 max-w-sm shadow-xl text-center">
+                        <AlertCircle className="w-10 h-10 text-amber-500 mx-auto mb-3" />
+                        <p className="text-gray-800 font-medium">{modalMessage}</p>
+                    </div>
+                </div>
+            )}
+
             <div className="min-h-screen bg-white flex items-center justify-center py-12">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -244,6 +258,7 @@ const PrePayment = () => {
                     </p>
                 </motion.div>
             </div>
+
             <Footer />
         </>
     );
