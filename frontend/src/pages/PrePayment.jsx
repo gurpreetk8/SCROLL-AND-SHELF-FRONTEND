@@ -86,7 +86,7 @@ const PrePayment = () => {
     // Delayed redirect after modal shows
     useEffect(() => {
         if (showModal) {
-            const timer = setTimeout(() => navigate('/'), 3000);
+            const timer = setTimeout(() => navigate('/'), 5000); // Changed to 5000ms (5 seconds)
             return () => clearTimeout(timer);
         }
     }, [showModal, navigate]);
@@ -213,15 +213,21 @@ const PrePayment = () => {
 
             {/* Modal for existing subscription */}
             {showModal && (
-                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                <div className="fixed inset-0 flex items-center justify-center z-50">
                     <motion.div
                         initial={{ scale: 0.8, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
-                        className="bg-white p-6 rounded-lg shadow-lg text-center max-w-md"
+                        className="bg-white p-6 rounded-lg shadow-lg text-center max-w-md border border-amber-100"
                     >
                         <AlertCircle className="h-10 w-10 text-red-500 mx-auto mb-4" />
                         <h2 className="text-lg font-semibold text-gray-800 mb-2">Subscription Info</h2>
-                        <p className="text-gray-600">{modalMessage}</p>
+                        <p className="text-gray-600 mb-4">{modalMessage}</p>
+                        <div className="w-full bg-gray-200 rounded-full h-1.5">
+                            <div 
+                                className="bg-amber-500 h-1.5 rounded-full" 
+                                style={{ animation: 'progressBar 5s linear forwards' }}
+                            ></div>
+                        </div>
                     </motion.div>
                 </div>
             )}
@@ -273,6 +279,13 @@ const PrePayment = () => {
                 </motion.div>
             </div>
             <Footer />
+
+            <style jsx>{`
+                @keyframes progressBar {
+                    0% { width: 0%; }
+                    100% { width: 100%; }
+                }
+            `}</style>
         </>
     );
 };
