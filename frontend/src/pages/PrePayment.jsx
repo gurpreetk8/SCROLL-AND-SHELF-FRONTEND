@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { Loader2, CheckCircle, AlertCircle, ArrowLeft } from 'lucide-react';
+import { Loader2, CheckCircle, AlertCircle, ArrowLeft, X } from 'lucide-react';
 import Footer from '../components/HomePage/Footer';
 import Navbar from '../components/HomePage/Navbar';
 
@@ -12,8 +12,8 @@ const PrePayment = () => {
     const [error, setError] = useState(null);
     const [subscriptionId, setSubscriptionId] = useState(null);
     const [user, setUser] = useState(null);
-    const [showModal, setShowModal] = useState(false);
-    const [modalMessage, setModalMessage] = useState('');
+    const [showToast, setShowToast] = useState(false);
+    const [toastMessage, setToastMessage] = useState('');
     const amount = 199;
 
     useEffect(() => {
@@ -56,8 +56,8 @@ const PrePayment = () => {
 
                 if (!subscriptionResponse.data.success) {
                     if (subscriptionResponse.data.message === "Active subscription already exists") {
-                        setModalMessage("You already have an active subscription. Redirecting to homepage...");
-                        setShowModal(true);
+                        setToastMessage("You already have an active subscription. Redirecting to homepage...");
+                        setShowToast(true);
                         setLoading(false);
                         return;
                     }
@@ -83,13 +83,13 @@ const PrePayment = () => {
         initializePayment();
     }, [navigate]);
 
-    // Delayed redirect after modal shows
+    // Delayed redirect after toast shows
     useEffect(() => {
-        if (showModal) {
-            const timer = setTimeout(() => navigate('/'), 5000); // Changed to 5000ms (5 seconds)
+        if (showToast) {
+            const timer = setTimeout(() => navigate('/'), 5000);
             return () => clearTimeout(timer);
         }
-    }, [showModal, navigate]);
+    }, [showToast, navigate]);
 
     const handlePayment = async () => {
         try {
@@ -211,25 +211,36 @@ const PrePayment = () => {
         <>
             <Navbar />
 
-            {/* Modal for existing subscription */}
-            {showModal && (
-                <div className="fixed inset-0 flex items-center justify-center z-50">
-                    <motion.div
-                        initial={{ scale: 0.8, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        className="bg-white p-6 rounded-lg shadow-lg text-center max-w-md border border-amber-100"
-                    >
-                        <AlertCircle className="h-10 w-10 text-red-500 mx-auto mb-4" />
-                        <h2 className="text-lg font-semibold text-gray-800 mb-2">Subscription Info</h2>
-                        <p className="text-gray-600 mb-4">{modalMessage}</p>
-                        <div className="w-full bg-gray-200 rounded-full h-1.5">
-                            <div 
-                                className="bg-amber-500 h-1.5 rounded-full" 
-                                style={{ animation: 'progressBar 5s linear forwards' }}
-                            ></div>
+            {/* Toast notification */}
+            {showToast && (
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 20 }}
+                    transition={{ duration: 0.3 }}
+                    className="fixed bottom-4 right-4 z-50"
+                >
+                    <div className="bg-white p-4 rounded-lg shadow-lg border border-amber-200 max-w-xs">
+                        <div className="flex items-start">
+                            <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 mr-2" />
+                            <div className="flex-1">
+                                <p className="text-sm font-medium text-gray-900">{toastMessage}</p>
+                                <div className="w-full bg-gray-200 rounded-full h-1 mt-2">
+                                    <div 
+                                        className="bg-amber-500 h-1 rounded-full" 
+                                        style={{ animation: 'progressBar 5s linear forwards' }}
+                                    ></div>
+                                </div>
+                            </div>
+                            <button 
+                                onClick={() => setShowToast(false)} 
+                                className="ml-2 text-gray-400 hover:text-gray-500"
+                            >
+                                <X className="h-4 w-4" />
+                            </button>
                         </div>
-                    </motion.div>
-                </div>
+                    </div>
+                </motion.div>
             )}
 
             <div className="min-h-screen bg-white flex items-center justify-center py-12">
@@ -282,8 +293,8 @@ const PrePayment = () => {
 
             <style jsx>{`
                 @keyframes progressBar {
-                    0% { width: 0%; }
-                    100% { width: 100%; }
+                    0% { width: 100%; }
+                    100% { width: 0%; }
                 }
             `}</style>
         </>
