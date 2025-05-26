@@ -9,10 +9,8 @@ const SubscriptionOverview = () => {
     const features = [
         "Unlimited access to 1M+ ebooks",
         "Priority customer support",
-        "Exclusive member-only content",
         "DRM-free downloads",
-        "Personalized recommendations",
-        "Advanced search filters"
+        "Personalized recommendations"
     ];
 
     return (
@@ -31,7 +29,7 @@ const SubscriptionOverview = () => {
                             <span className="text-sm font-medium text-amber-900">PREMIUM MEMBERSHIP</span>
                         </div>
                         <h1 className="text-4xl font-light text-gray-900 mb-4">
-                            Unlimited <span className="font-serif italic">Literary</span> Access
+                            Unlimited <span className="font-serif text-gray-900">Literary</span> Access
                         </h1>
                         <div className="mx-auto mt-4 h-px w-24 bg-gradient-to-r from-amber-400 to-amber-600" />
                     </motion.div>
@@ -58,7 +56,7 @@ const SubscriptionOverview = () => {
 
                             <div className="grid md:grid-cols-2 gap-12 mb-16">
                                 <div className="space-y-2">
-                                    {features.slice(0, 3).map((feature, index) => (
+                                    {features.slice(0, 2).map((feature, index) => (
                                         <div key={index} className="flex items-start space-x-3">
                                             <CheckCircle className="h-6 w-6 text-amber-600 flex-shrink-0 mt-1" />
                                             <p className="text-gray-900 font-light">{feature}</p>
@@ -66,7 +64,7 @@ const SubscriptionOverview = () => {
                                     ))}
                                 </div>
                                 <div className="space-y-2">
-                                    {features.slice(3).map((feature, index) => (
+                                    {features.slice(2).map((feature, index) => (
                                         <div key={index} className="flex items-start space-x-3">
                                             <CheckCircle className="h-6 w-6 text-amber-600 flex-shrink-0 mt-1" />
                                             <p className="text-gray-900 font-light">{feature}</p>
@@ -82,19 +80,10 @@ const SubscriptionOverview = () => {
                                 className="w-full flex items-center justify-center space-x-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white px-8 py-4 rounded-xl hover:from-amber-600 hover:to-amber-700 transition-all"
                             >
                                 <BookOpen className="h-6 w-6" />
-                                <span className="text-lg font-medium">Start Reading Now</span>
+                                <span className="text-lg font-medium">Subscribe Now</span>
                                 <ArrowRight className="h-6 w-6 ml-2" />
                             </motion.button>
                         </div>
-                    </motion.div>
-
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="mt-8 text-center text-gray-600 text-sm"
-                    >
-                        <p>7-day free trial available • Secure payment processing</p>
-                        <p className="mt-2">Cancel anytime • No hidden fees</p>
                     </motion.div>
                 </div>
             </div>
