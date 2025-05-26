@@ -58,7 +58,6 @@ const PrePayment = () => {
                     if (subscriptionResponse.data.message === "Active subscription already exists") {
                         setModalMessage("You already have an active subscription. Redirecting to homepage...");
                         setShowModal(true);
-                        setTimeout(() => navigate('/'), 3000);
                         return;
                     }
                     throw new Error(subscriptionResponse.data.message);
@@ -82,6 +81,14 @@ const PrePayment = () => {
 
         initializePayment();
     }, [navigate]);
+
+    // Delayed redirect after modal shows
+    useEffect(() => {
+        if (showModal) {
+            const timer = setTimeout(() => navigate('/'), 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [showModal, navigate]);
 
     const handlePayment = async () => {
         try {
@@ -203,12 +210,18 @@ const PrePayment = () => {
         <>
             <Navbar />
 
+            {/* Modal for existing subscription */}
             {showModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg p-6 max-w-sm shadow-xl text-center">
-                        <AlertCircle className="w-10 h-10 text-amber-500 mx-auto mb-3" />
-                        <p className="text-gray-800 font-medium">{modalMessage}</p>
-                    </div>
+                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                    <motion.div
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        className="bg-white p-6 rounded-lg shadow-lg text-center max-w-md"
+                    >
+                        <AlertCircle className="h-10 w-10 text-red-500 mx-auto mb-4" />
+                        <h2 className="text-lg font-semibold text-gray-800 mb-2">Subscription Info</h2>
+                        <p className="text-gray-600">{modalMessage}</p>
+                    </motion.div>
                 </div>
             )}
 
@@ -258,7 +271,6 @@ const PrePayment = () => {
                     </p>
                 </motion.div>
             </div>
-
             <Footer />
         </>
     );
