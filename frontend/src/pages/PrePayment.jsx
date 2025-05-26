@@ -34,12 +34,10 @@ const PrePayment = () => {
                     return;
                 }
 
-                // Get user from token
                 const userString = localStorage.getItem('user');
                 const userData = JSON.parse(userString);
                 setUser(userData);
 
-                // Step 1: Create subscription with required parameters
                 const subscriptionResponse = await axios.post(
                     'https://scrollandshelf.pythonanywhere.com/subscriptions/create_subscription/',
                     {
@@ -49,26 +47,26 @@ const PrePayment = () => {
                     {
                         headers: {
                             'Authorization': `Bearer ${token}`,
-                            'Content-Type': 'application/json' // only necessary header
+                            'Content-Type': 'application/json'
                         }
                     }
                 );
 
                 if (!subscriptionResponse.data.success) {
                     if (subscriptionResponse.data.message === "Active subscription already exists") {
-                        navigate('/'); // Redirect to a relevant page
+                        navigate('/');
                         return;
                     }
                     throw new Error(subscriptionResponse.data.message);
-        }
+                }
 
                 setSubscriptionId(subscriptionResponse.data.subscription_id);
                 setLoading(false);
 
             } catch (err) {
-                const errorMessage = err.response?.data?.message || 
-                                  err.message || 
-                                  "Failed to initialize subscription";
+                const errorMessage = err.response?.data?.message ||
+                    err.message ||
+                    "Failed to initialize subscription";
                 console.error("Subscription Error:", {
                     message: errorMessage,
                     response: err.response?.data
@@ -126,7 +124,8 @@ const PrePayment = () => {
                         );
 
                         if (verificationResponse.data.success) {
-                            navigate('/subscription-success');
+                            alert('Payment successful! Redirecting to homepage...');
+                            setTimeout(() => navigate('/'), 3000);
                         } else {
                             throw new Error(verificationResponse.data.message || 'Payment verification failed');
                         }
