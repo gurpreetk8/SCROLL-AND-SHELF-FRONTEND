@@ -211,14 +211,14 @@ const PrePayment = () => {
         <>
             <Navbar />
 
-            {/* Toast notification */}
+            {/* Toast notification - positioned top-right */}
             {showToast && (
                 <motion.div
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 20 }}
+                    exit={{ opacity: 0, y: -20 }}
                     transition={{ duration: 0.3 }}
-                    className="fixed bottom-4 right-4 z-50"
+                    className="fixed top-4 right-4 z-50"
                 >
                     <div className="bg-white p-4 rounded-lg shadow-lg border border-amber-200 max-w-xs">
                         <div className="flex items-start">
