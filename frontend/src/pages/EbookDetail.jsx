@@ -18,7 +18,7 @@ const EbookDetail = () => {
   const [ratings, setRatings] = useState({ average: 0, count: 0 });
   const [showWishlistText, setShowWishlistText] = useState(false);
   const [isReading, setIsReading] = useState(false);
-  const [hasSubscription, setHasSubscription] = useState(false);
+  const [hasSubscription, setHasSubscription] = useState(null); // Changed to null initially
   const [checkingSubscription, setCheckingSubscription] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -32,7 +32,7 @@ const EbookDetail = () => {
 
     try {
       const response = await axios.post(
-        'https://scrollandshelf.pythonanywhere.com/check_subscription/',
+        'https://scrollandshelf.pythonanywhere.com/subscriptions/check_subscription/', // Updated endpoint path
         {},
         {
           headers: {
@@ -210,8 +210,7 @@ const EbookDetail = () => {
         setCheckingSubscription(true);
         const subscribed = await checkSubscriptionStatus();
         setHasSubscription(subscribed);
-        setCheckingSubscription(false);
-
+        
         const response = await axios.post(
           'https://scrollandshelf.pythonanywhere.com/ebooks/ebook_detail/',
           { id: ebookId },
@@ -234,6 +233,7 @@ const EbookDetail = () => {
       } catch (err) {
         setError('Error fetching ebook details.');
       } finally {
+        setCheckingSubscription(false);
         setLoading(false);
       }
     };
@@ -350,7 +350,9 @@ const EbookDetail = () => {
 
               <div className="flex items-center space-x-4">
                 {ebook.file_url ? (
-                  hasSubscription ? (
+                  hasSubscription === null ? (
+                    <div className="text-gray-500">Checking subscription status...</div>
+                  ) : hasSubscription ? (
                     <>
                       <motion.button
                         whileHover={{ scale: 1.05 }}
@@ -377,7 +379,7 @@ const EbookDetail = () => {
                       onClick={() => navigate('/subscribe')}
                     >
                       <BookOpen className="h-5 w-5 mr-2" />
-                      {checkingSubscription ? 'Checking...' : 'Subscribe to Access'}
+                      Subscribe to Access
                     </motion.button>
                   )
                 ) : (
@@ -387,7 +389,7 @@ const EbookDetail = () => {
                     onClick={() => navigate('/subscribe')}
                   >
                     <BookOpen className="h-5 w-5 mr-2" />
-                    {checkingSubscription ? 'Checking...' : 'Subscribe to Access'}
+                    Subscribe to Access
                   </motion.button>
                 )}
                 <div className="relative group">
