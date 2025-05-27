@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import { 
   Loader2, 
   Calendar, 
@@ -17,6 +18,7 @@ export default function Subscriptions() {
   const [successMessage, setSuccessMessage] = useState(null);
   const [durationDays, setDurationDays] = useState(30);
   const [isCreating, setIsCreating] = useState(false);
+  const navigate = useNavigate();
 
   const API_BASE_URL = "https://scrollandshelf.pythonanywhere.com/subscriptions/";
   const token = localStorage.getItem("token");
@@ -177,60 +179,46 @@ export default function Subscriptions() {
           animate={{ opacity: 1 }}
           className="space-y-4"
         >
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Status */}
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <p className="text-sm text-gray-500">Status</p>
-              <div className="flex items-center mt-1">
-                <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                <p className="font-medium capitalize">Active</p>
-              </div>
-              <p className="text-xs text-gray-500 mt-1">
-                {calculateDaysRemaining(subscription.endDate)} days remaining
-              </p>
+          {/* Status */}
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <p className="text-sm text-gray-500">Status</p>
+            <div className="flex items-center mt-1">
+              <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+              <p className="font-medium capitalize">Active</p>
             </div>
+            <p className="text-xs text-gray-500 mt-1">
+              {calculateDaysRemaining(subscription.endDate)} days remaining
+            </p>
+          </div>
 
-            {/* Start Date */}
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <p className="text-sm text-gray-500">Start Date</p>
-              <div className="flex items-center mt-1">
-                <Calendar className="h-4 w-4 text-gray-500 mr-2" />
-                <p className="font-medium">{formatDate(subscription.startDate)}</p>
-              </div>
+          {/* Start Date */}
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <p className="text-sm text-gray-500">Start Date</p>
+            <div className="flex items-center mt-1">
+              <Calendar className="h-4 w-4 text-gray-500 mr-2" />
+              <p className="font-medium">{formatDate(subscription.startDate)}</p>
             </div>
+          </div>
 
-            {/* End Date */}
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <p className="text-sm text-gray-500">End Date</p>
-              <div className="flex items-center mt-1">
-                <Calendar className="h-4 w-4 text-gray-500 mr-2" />
-                <p className="font-medium">{formatDate(subscription.endDate)}</p>
-              </div>
+          {/* End Date */}
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <p className="text-sm text-gray-500">End Date</p>
+            <div className="flex items-center mt-1">
+              <Calendar className="h-4 w-4 text-gray-500 mr-2" />
+              <p className="font-medium">{formatDate(subscription.endDate)}</p>
             </div>
           </div>
         </motion.div>
       ) : (
-        /* ----------- No subscription UI ------------ */
+        /* ----------- Updated No subscription UI ------------ */
         <div className="space-y-4">
           <p className="text-gray-700">You have no active subscription.</p>
-          <div className="flex items-center space-x-4">
-            <input
-              type="number"
-              value={durationDays}
-              onChange={(e) => setDurationDays(parseInt(e.target.value))}
-              className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition"
-              min={1}
-            />
-            <button
-              onClick={createSubscription}
-              disabled={isCreating}
-              className={`px-4 py-2 rounded-lg text-white ${
-                isCreating ? "bg-gray-400" : "bg-gray-800 hover:bg-gray-700"
-              } transition-colors`}
-            >
-              {isCreating ? "Creating..." : "Subscribe"}
-            </button>
-          </div>
+          <button
+            onClick={() => navigate('/subscribe')}
+            className="px-4 py-2 rounded-lg text-white bg-gray-800 hover:bg-gray-700 transition-colors"
+          >
+            View Subscription Plans
+          </button>
         </div>
       )}
     </motion.div>
