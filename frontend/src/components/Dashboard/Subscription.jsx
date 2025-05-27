@@ -16,8 +16,6 @@ export default function Subscriptions() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
-  const [durationDays, setDurationDays] = useState(30);
-  const [isCreating, setIsCreating] = useState(false);
   const navigate = useNavigate();
 
   const API_BASE_URL = "https://scrollandshelf.pythonanywhere.com/subscriptions/";
@@ -75,39 +73,6 @@ export default function Subscriptions() {
       handleApiError(err);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const createSubscription = async () => {
-    try {
-      setIsCreating(true);
-      setError(null);
-
-      const res = await axios.post(
-        `${API_BASE_URL}create_subscription/`,
-        { duration_days: durationDays, amount_paid: 0.0 },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      if (res.data.success) {
-        setSuccessMessage("Subscription created successfully!");
-        setTimeout(() => setSuccessMessage(null), 3000);
-        setSubscription({
-          status: "active",
-          startDate: res.data.start_date,
-          endDate: res.data.end_date,
-        });
-      } else if (res.data.code === "SUBSCRIPTION_EXISTS") {
-        setSubscription({
-          status: "active",
-          startDate: res.data.start_date,
-          endDate: res.data.end_date,
-        });
-      } else setError(res.data.message || "Failed to create subscription");
-    } catch (err) {
-      handleApiError(err);
-    } finally {
-      setIsCreating(false);
     }
   };
 
@@ -179,7 +144,7 @@ export default function Subscriptions() {
           animate={{ opacity: 1 }}
           className="space-y-4"
         >
-          {/* Status */}
+          {/* Status - Full width */}
           <div className="bg-gray-50 p-4 rounded-lg">
             <p className="text-sm text-gray-500">Status</p>
             <div className="flex items-center mt-1">
@@ -191,21 +156,24 @@ export default function Subscriptions() {
             </p>
           </div>
 
-          {/* Start Date */}
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <p className="text-sm text-gray-500">Start Date</p>
-            <div className="flex items-center mt-1">
-              <Calendar className="h-4 w-4 text-gray-500 mr-2" />
-              <p className="font-medium">{formatDate(subscription.startDate)}</p>
+          {/* Dates - Side by side */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Start Date */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <p className="text-sm text-gray-500">Start Date</p>
+              <div className="flex items-center mt-1">
+                <Calendar className="h-4 w-4 text-gray-500 mr-2" />
+                <p className="font-medium">{formatDate(subscription.startDate)}</p>
+              </div>
             </div>
-          </div>
 
-          {/* End Date */}
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <p className="text-sm text-gray-500">End Date</p>
-            <div className="flex items-center mt-1">
-              <Calendar className="h-4 w-4 text-gray-500 mr-2" />
-              <p className="font-medium">{formatDate(subscription.endDate)}</p>
+            {/* End Date */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <p className="text-sm text-gray-500">End Date</p>
+              <div className="flex items-center mt-1">
+                <Calendar className="h-4 w-4 text-gray-500 mr-2" />
+                <p className="font-medium">{formatDate(subscription.endDate)}</p>
+              </div>
             </div>
           </div>
         </motion.div>
