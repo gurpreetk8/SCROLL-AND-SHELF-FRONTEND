@@ -30,7 +30,7 @@ export default function Subscriptions() {
       setSuccessMessage(null);
 
       const response = await axios.post(
-        `${API_BASE_URL}pre_book_subscription/`,
+        `${API_BASE_URL}check_subscription/`,
         {},
         {
           headers: {
@@ -41,14 +41,18 @@ export default function Subscriptions() {
       );
 
       if (response.data.success) {
-        setSubscription({
-          status: response.data.message.includes("already") ? "active" : "created",
-          message: response.data.message,
-          startDate: response.data.start_date,
-          endDate: response.data.end_date,
-        });
+        if (response.data.has_subscription) {
+          setSubscription({
+            status: "active",
+            message: "Active subscription found",
+            startDate: null,
+            endDate: response.data.end_date,
+          });
+        } else {
+          setSubscription(null);
+        }
       } else {
-        setError(response.data.message || "Failed to fetch subscription");
+        setError("Failed to check subscription status");
       }
     } catch (err) {
       handleApiError(err);
@@ -63,8 +67,11 @@ export default function Subscriptions() {
       setError(null);
 
       const response = await axios.post(
-        `${API_BASE_URL}pre_book_subscription/`,
-        { duration_days: durationDays },
+        `${API_BASE_URL}create_subscription/`,
+        {
+          duration_days: durationDays,
+          amount_paid: 0.0, // or allow user to input this
+        },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -83,7 +90,16 @@ export default function Subscriptions() {
           endDate: response.data.end_date,
         });
       } else {
-        setError(response.data.message || "Failed to create subscription");
+        if (response.data.code === "SUBSCRIPTION_EXISTS") {
+          setSubscription({
+            status: "active",
+            message: response.data.message,
+            startDate: null,
+            endDate: null,
+          });
+        } else {
+          setError(response.data.message || "Failed to create subscription");
+        }
       }
     } catch (err) {
       handleApiError(err);
@@ -245,55 +261,27 @@ export default function Subscriptions() {
           </div>
         </motion.div>
       ) : (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="space-y-4"
-        >
-          <div className="bg-yellow-50 p-3 rounded border border-yellow-200 flex items-center space-x-2">
-            <Clock className="h-4 w-4 text-yellow-600 flex-shrink-0" />
-            <p className="text-gray-700 text-sm">No active subscription found</p>
-          </div>
-
-          <div className="space-y-3">
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
-                Subscription Duration
-              </label>
-              <select
-                value={durationDays}
-                onChange={(e) => setDurationDays(parseInt(e.target.value))}
-                className="w-full border border-gray-300 p-2 rounded text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="7">7 days</option>
-                <option value="30">30 days</option>
-                <option value="90">90 days</option>
-                <option value="180">180 days</option>
-                <option value="365">365 days</option>
-              </select>
-            </div>
-
-            <motion.button
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
+        <div className="space-y-4">
+          <p className="text-gray-700">You have no active subscription.</p>
+          <div className="flex items-center space-x-3">
+            <input
+              type="number"
+              value={durationDays}
+              onChange={(e) => setDurationDays(parseInt(e.target.value))}
+              className="border rounded px-3 py-1 text-sm w-24"
+              min={1}
+            />
+            <button
               onClick={createSubscription}
               disabled={isCreating}
-              className="w-full px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 disabled:opacity-70 flex items-center justify-center space-x-2"
+              className={`px-4 py-1.5 rounded text-sm text-white ${
+                isCreating ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"
+              }`}
             >
-              {isCreating ? (
-                <>
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                  <span>Processing...</span>
-                </>
-              ) : (
-                <>
-                  <Zap className="h-3 w-3" />
-                  <span>Create Subscription</span>
-                </>
-              )}
-            </motion.button>
+              {isCreating ? "Creating..." : "Subscribe"}
+            </button>
           </div>
-        </motion.div>
+        </div>
       )}
     </div>
   );
