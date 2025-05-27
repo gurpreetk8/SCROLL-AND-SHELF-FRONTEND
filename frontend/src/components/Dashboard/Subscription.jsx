@@ -121,47 +121,50 @@ export default function Subscriptions() {
   /* -------------------------------------------------- UI states */
   if (isLoading) {
     return (
-      <div className="bg-white rounded-lg shadow p-6 flex items-center space-x-3">
-        <Loader2 className="h-5 w-5 animate-spin text-blue-500" />
-        <p className="text-gray-600 text-sm">Loading subscription details…</p>
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-300"></div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-white rounded-lg shadow p-6">
-        <div className="text-red-500 flex items-start space-x-2">
-          <AlertCircle className="h-5 w-5 mt-0.5" />
-          <div>
-            <p className="font-medium text-sm">{error}</p>
-            <button
-              onClick={fetchSubscription}
-              className="mt-2 px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700"
-            >
-              Try Again
-            </button>
-          </div>
-        </div>
-      </div>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="p-4 bg-red-50 rounded-lg border border-red-200 text-red-600"
+      >
+        <p className="font-medium">Error:</p>
+        <p>{error}</p>
+        <button
+          onClick={fetchSubscription}
+          className="mt-2 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700 text-sm"
+        >
+          Retry
+        </button>
+      </motion.div>
     );
   }
 
   /* -------------------------------------------------- JSX */
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center space-x-2">
-        <Zap className="text-yellow-500 h-4 w-4" />
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="bg-white rounded-lg shadow p-6"
+    >
+      <h2 className="text-xl font-semibold text-gray-800 mb-6 flex items-center space-x-2">
+        <Zap className="text-yellow-500 h-5 w-5" />
         <span>My Subscription</span>
       </h2>
 
       <AnimatePresence>
         {successMessage && (
           <motion.div
-            initial={{ opacity: 0, y: -6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            className="mb-3 p-2 bg-green-100 text-green-700 rounded text-xs"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="p-4 bg-green-50 rounded-lg border border-green-200 text-green-600 mb-6"
           >
             {successMessage}
           </motion.div>
@@ -172,66 +175,64 @@ export default function Subscriptions() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="space-y-3"
+          className="space-y-4"
         >
-          {/* ACTIVE BADGE */}
-          <div className="flex items-center space-x-2 bg-green-50 border border-green-200 p-2 rounded">
-            <div className="bg-green-100 text-green-700 p-1 rounded-full">
-              <CheckCircle className="h-3.5 w-3.5" />
-            </div>
-            <div className="text-xs">
-              <p className="font-medium capitalize">active</p>
-              <p className="text-[10px] text-gray-500">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Status */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <p className="text-sm text-gray-500">Status</p>
+              <div className="flex items-center mt-1">
+                <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                <p className="font-medium capitalize">Active</p>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
                 {calculateDaysRemaining(subscription.endDate)} days remaining
               </p>
             </div>
-          </div>
 
-          {/* DATES */}
-          <div className="space-y-2">
             {/* Start Date */}
-            <div className="flex items-center bg-gray-50 border border-gray-200 rounded p-2 text-xs">
-              <Calendar className="h-3 w-3 mr-1 text-gray-500" />
-              <span className="mr-1 text-gray-500">Start&nbsp;Date:</span>
-              <span className="font-medium text-gray-800">
-                {formatDate(subscription.startDate)}
-              </span>
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <p className="text-sm text-gray-500">Start Date</p>
+              <div className="flex items-center mt-1">
+                <Calendar className="h-4 w-4 text-gray-500 mr-2" />
+                <p className="font-medium">{formatDate(subscription.startDate)}</p>
+              </div>
             </div>
 
             {/* End Date */}
-            <div className="flex items-center bg-gray-50 border border-gray-200 rounded p-2 text-xs">
-              <Calendar className="h-3 w-3 mr-1 text-gray-500" />
-              <span className="mr-1 text-gray-500">End&nbsp;Date:</span>
-              <span className="font-medium text-gray-800">
-                {formatDate(subscription.endDate)}
-              </span>
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <p className="text-sm text-gray-500">End Date</p>
+              <div className="flex items-center mt-1">
+                <Calendar className="h-4 w-4 text-gray-500 mr-2" />
+                <p className="font-medium">{formatDate(subscription.endDate)}</p>
+              </div>
             </div>
           </div>
         </motion.div>
       ) : (
         /* ----------- No subscription UI ------------ */
         <div className="space-y-4">
-          <p className="text-sm text-gray-700">You have no active subscription.</p>
-          <div className="flex items-center space-x-3">
+          <p className="text-gray-700">You have no active subscription.</p>
+          <div className="flex items-center space-x-4">
             <input
               type="number"
               value={durationDays}
               onChange={(e) => setDurationDays(parseInt(e.target.value))}
-              className="border rounded px-2 py-1 text-xs w-20"
+              className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition"
               min={1}
             />
             <button
               onClick={createSubscription}
               disabled={isCreating}
-              className={`px-3 py-1.5 rounded text-xs text-white ${
-                isCreating ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"
-              }`}
+              className={`px-4 py-2 rounded-lg text-white ${
+                isCreating ? "bg-gray-400" : "bg-gray-800 hover:bg-gray-700"
+              } transition-colors`}
             >
-              {isCreating ? "Creating…" : "Subscribe"}
+              {isCreating ? "Creating..." : "Subscribe"}
             </button>
           </div>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }
