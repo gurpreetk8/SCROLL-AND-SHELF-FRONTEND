@@ -4,7 +4,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import LoginRegister from './pages/LoginRegister';
 import Categories from './pages/Categories';
-import Community from './pages/Community';
+
 import UserDashboard from './pages/UserDashboard';
 import EbookDetail from './pages/EbookDetail';
 import Ebooks from './pages/Ebooks';
@@ -23,7 +23,7 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/login-register" element={<LoginRegister />} />
         <Route path="/Categories" element={<Categories />} />
-        <Route path="/community" element={<Community />} />
+        
         <Route path="/dashboard" element={<UserDashboard />} />
         <Route path="/ebook-detail" element={<EbookDetail />} />
         <Route path="/ebooks" element={<Ebooks />} />
