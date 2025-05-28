@@ -1,9 +1,9 @@
 import React from 'react';
 import Navbar from '../components/HomePage/Navbar';
-import CommunityPage from '../components/Commuinty/CommunityPage';
-import CommentPosts from '../components/Commuinty/CommentPosts';
-import LikePosts from '../components/Commuinty/LikePosts';
-import ReportPosts from '../components/Commuinty/ReportPosts';
+import CommunityPage from '../components/Community/CommunityPage';
+import CommentPosts from '../components/Community/CommentPosts';
+import LikePosts from '../components/Community/LikePosts';
+import ReportPosts from '../components/Community/ReportPosts';
 import Footer from '../components/HomePage/Footer';
 
 const Community = () => {

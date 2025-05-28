@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import LoginRegister from './pages/LoginRegister';
 import Categories from './pages/Categories';
+import Community from './pages/Community';
 import UserDashboard from './pages/UserDashboard';
 import EbookDetail from './pages/EbookDetail';
 import Ebooks from './pages/Ebooks';
