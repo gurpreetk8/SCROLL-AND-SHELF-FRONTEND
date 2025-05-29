@@ -11,7 +11,6 @@ const RequestBook = () => {
     genre: '',
     message: ''
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
   const genres = [
@@ -21,18 +20,19 @@ const RequestBook = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsSubmitting(true);
+    console.log('Form submission started', formData); // Debug log
 
     // Check if user is logged in
     const token = localStorage.getItem('token');
+    console.log('Token found:', !!token); // Debug log
     if (!token) {
       toast.error('You need to log in to request a book');
       navigate('/login-register');
-      setIsSubmitting(false);
       return;
     }
 
     try {
+      console.log('Submitting data:', formData); // Debug log
       const response = await fetch('https://scrollandshelf.pythonanywhere.com/ebooks/request_book/', {
         method: 'POST',
         headers: {
@@ -42,7 +42,9 @@ const RequestBook = () => {
         body: JSON.stringify(formData)
       });
 
+      console.log('Response status:', response.status); // Debug log
       const data = await response.json();
+      console.log('Response data:', data); // Debug log
 
       if (!response.ok) {
         throw new Error(data.message || 'Failed to submit book request');
@@ -59,12 +61,9 @@ const RequestBook = () => {
       console.error('Error submitting book request:', error);
       toast.error(error.message || 'An error occurred while submitting your request');
       
-      // If unauthorized, redirect to login
       if (error.message.includes('token') || error.message.includes('Authentication')) {
         navigate('/login-register');
       }
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -165,11 +164,10 @@ const RequestBook = () => {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   type="submit"
-                  className="w-full flex items-center justify-center space-x-2 bg-gray-900 text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50"
-                  disabled={isSubmitting}
+                  className="w-full flex items-center justify-center space-x-2 bg-gray-900 text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors"
                 >
                   <Send className="h-5 w-5" />
-                  <span>{isSubmitting ? 'Submitting...' : 'Send Request'}</span>
+                  <span>Send Request</span>
                 </motion.button>
               </div>
             </form>
