@@ -2,7 +2,7 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import HomePage from './pages/HomePage';
-import RequestBook from './components/HomePage/RequestBookLanding';
+import RequestBook from './pages/RequestBook';
 import LoginRegister from './pages/LoginRegister';
 import Categories from './pages/Categories';
 
