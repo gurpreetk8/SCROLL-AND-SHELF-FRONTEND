@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Book, ChevronRight, X } from 'lucide-react';
+import { Book, ChevronRight } from 'lucide-react';
 import { toast } from 'react-toastify';
 import RequestBook from '../../pages/RequestBook';
- // Adjust the path if needed
 
 const RequestBookLanding = () => {
   const [showModal, setShowModal] = useState(false);
@@ -15,6 +14,10 @@ const RequestBookLanding = () => {
       return;
     }
     setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
   };
 
   return (
@@ -67,20 +70,7 @@ const RequestBookLanding = () => {
         </motion.div>
       </div>
 
-      {/* Modal */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="relative w-full max-w-2xl mx-4 bg-white rounded-2xl shadow-2xl p-6">
-            <button
-              onClick={() => setShowModal(false)}
-              className="absolute top-4 right-4 text-gray-500 hover:text-gray-800"
-            >
-              <X className="h-6 w-6" />
-            </button>
-            <RequestBook />
-          </div>
-        </div>
-      )}
+      <RequestBook isOpen={showModal} onClose={handleCloseModal} />
     </section>
   );
 };
