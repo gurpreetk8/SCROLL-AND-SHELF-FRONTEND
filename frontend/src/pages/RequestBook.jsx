@@ -1,4 +1,3 @@
-// components/RequestBookModal.jsx
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Book, User, ChevronDown, MessageSquare, Send, X } from 'lucide-react';
@@ -26,7 +25,7 @@ const RequestBook = ({ isOpen, onClose }) => {
     const token = localStorage.getItem('token');
     if (!token) {
       toast.error('Please log in to request a book.');
-      onClose(); // Close modal instead of navigate
+      onClose();
       return;
     }
 

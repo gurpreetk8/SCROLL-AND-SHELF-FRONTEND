@@ -5,7 +5,7 @@ import { toast } from 'react-toastify';
 import RequestBook from '../../pages/RequestBook';
 
 const RequestBookLanding = () => {
-  const [showModal, setShowModal] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleOpenModal = () => {
     const token = localStorage.getItem('token');
@@ -13,11 +13,7 @@ const RequestBookLanding = () => {
       toast.error('Please log in to request a book');
       return;
     }
-    setShowModal(true);
-  };
-
-  const handleCloseModal = () => {
-    setShowModal(false);
+    setIsModalOpen(true);
   };
 
   return (
@@ -70,7 +66,7 @@ const RequestBookLanding = () => {
         </motion.div>
       </div>
 
-      <RequestBook isOpen={showModal} onClose={handleCloseModal} />
+      <RequestBook isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </section>
   );
 };
