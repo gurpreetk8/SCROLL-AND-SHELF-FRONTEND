@@ -2,6 +2,7 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import HomePage from './pages/HomePage';
+import RequestBook from './components/HomePage/RequestBook';
 import LoginRegister from './pages/LoginRegister';
 import Categories from './pages/Categories';
 
@@ -22,6 +23,7 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/login-register" element={<LoginRegister />} />
+        <Route path="/request-book" element={<RequestBook />} />
         <Route path="/Categories" element={<Categories />} />
         
         <Route path="/dashboard" element={<UserDashboard />} />
