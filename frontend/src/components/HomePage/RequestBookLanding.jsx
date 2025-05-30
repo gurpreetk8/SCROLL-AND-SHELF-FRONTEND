@@ -1,20 +1,20 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Book, ChevronRight } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Book, ChevronRight, X } from 'lucide-react';
 import { toast } from 'react-toastify';
+import RequestBook from '../../pages/RequestBook';
+ // Adjust the path if needed
 
 const RequestBookLanding = () => {
-  const navigate = useNavigate();
+  const [showModal, setShowModal] = useState(false);
 
-  const handleNavigate = () => {
+  const handleOpenModal = () => {
     const token = localStorage.getItem('token');
     if (!token) {
       toast.error('Please log in to request a book');
-      navigate('/login-register');
       return;
     }
-    navigate('/request-book');
+    setShowModal(true);
   };
 
   return (
@@ -45,7 +45,6 @@ const RequestBookLanding = () => {
           whileInView={{ opacity: 1, scale: 1 }}
           className="max-w-lg mx-auto bg-white border border-gray-100 rounded-2xl shadow-xl overflow-hidden"
         >
-          {/* Single column with left panel styling */}
           <div className="flex flex-col items-center justify-center bg-gradient-to-b from-blue-50 to-amber-50 p-16 text-center">
             <div className="bg-white p-3 rounded-lg shadow-sm mb-4">
               <Book className="h-6 w-6 text-blue-600" />
@@ -58,7 +57,7 @@ const RequestBookLanding = () => {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.98 }}
-              onClick={handleNavigate}
+              onClick={handleOpenModal}
               className="flex items-center justify-center space-x-2 bg-gray-900 text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors"
             >
               <span>Continue to Request Form</span>
@@ -67,6 +66,21 @@ const RequestBookLanding = () => {
           </div>
         </motion.div>
       </div>
+
+      {/* Modal */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="relative w-full max-w-2xl mx-4 bg-white rounded-2xl shadow-2xl p-6">
+            <button
+              onClick={() => setShowModal(false)}
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-800"
+            >
+              <X className="h-6 w-6" />
+            </button>
+            <RequestBook />
+          </div>
+        </div>
+      )}
     </section>
   );
 };
