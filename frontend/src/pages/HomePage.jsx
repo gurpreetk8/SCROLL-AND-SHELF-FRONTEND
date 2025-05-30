@@ -6,7 +6,7 @@ import BookOfTheMonth from '../components/HomePage/BookOfTheMonth';
 import OurGenres from '../components/HomePage/OurGenres';
 import TrendingBooks from '../components/HomePage/TrendingBooks';
 import BookStats from '../components/HomePage/BookStats';
-import RequestBook from '../components/HomePage/RequestBook';
+import RequestBookLanding from '../components/HomePage/RequestBookLanding';
 import Footer from '../components/HomePage/Footer';
 
 
@@ -20,7 +20,7 @@ function HomePage() {
     <OurGenres />
     <TrendingBooks />
     <BookStats />
-    <RequestBook />
+    <RequestBookLanding />
     <Footer /> 
     </>
   );
