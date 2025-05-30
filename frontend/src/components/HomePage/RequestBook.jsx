@@ -11,6 +11,7 @@ const RequestBook = () => {
     genre: '',
     message: ''
   });
+
   const navigate = useNavigate();
 
   const genres = [
@@ -18,50 +19,41 @@ const RequestBook = () => {
     'Historical Fiction', 'Biography', 'Self-Help', 'Non-Fiction', 'Other'
   ];
 
+  const handleChange = (field) => (e) => {
+    setFormData({ ...formData, [field]: e.target.value });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Form submission started', formData); // Debug log
 
-    // Check if user is logged in
     const token = localStorage.getItem('token');
-    console.log('Token found:', !!token); // Debug log
     if (!token) {
-      toast.error('You need to log in to request a book');
+      toast.error('Please log in to request a book.');
       navigate('/login-register');
       return;
     }
 
     try {
-      console.log('Submitting data:', formData); // Debug log
       const response = await fetch('https://scrollandshelf.pythonanywhere.com/ebooks/request_book/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(formData),
       });
 
-      console.log('Response status:', response.status); // Debug log
       const data = await response.json();
-      console.log('Response data:', data); // Debug log
 
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to submit book request');
+        throw new Error(data.message || 'Something went wrong!');
       }
 
       toast.success('Book request submitted successfully!');
-      setFormData({
-        title: '',
-        author: '',
-        genre: '',
-        message: ''
-      });
+      setFormData({ title: '', author: '', genre: '', message: '' });
     } catch (error) {
-      console.error('Error submitting book request:', error);
-      toast.error(error.message || 'An error occurred while submitting your request');
-      
-      if (error.message.includes('token') || error.message.includes('Authentication')) {
+      toast.error(error.message || 'Error submitting your request.');
+      if (error.message.toLowerCase().includes('token')) {
         navigate('/login-register');
       }
     }
@@ -96,7 +88,7 @@ const RequestBook = () => {
           className="max-w-3xl mx-auto bg-white border border-gray-100 rounded-2xl shadow-xl overflow-hidden"
         >
           <div className="grid md:grid-cols-2">
-            {/* Custom Requests Left Panel */}
+            {/* Left Panel */}
             <div className="hidden md:flex flex-col items-center justify-center bg-gradient-to-b from-blue-50 to-amber-50 p-12 text-center">
               <div className="bg-white p-3 rounded-lg shadow-sm mb-4">
                 <Book className="h-6 w-6 text-blue-600" />
@@ -107,7 +99,7 @@ const RequestBook = () => {
               </p>
             </div>
 
-            {/* Form Section */}
+            {/* Form */}
             <form onSubmit={handleSubmit} className="p-8 md:p-12">
               <div className="space-y-6">
                 <div className="relative">
@@ -117,7 +109,7 @@ const RequestBook = () => {
                     placeholder="Book Title"
                     className="w-full pl-10 pr-4 py-3 border-b border-gray-200 focus:border-blue-600 focus:outline-none bg-transparent"
                     value={formData.title}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    onChange={handleChange('title')}
                     required
                   />
                 </div>
@@ -129,7 +121,7 @@ const RequestBook = () => {
                     placeholder="Author Name"
                     className="w-full pl-10 pr-4 py-3 border-b border-gray-200 focus:border-blue-600 focus:outline-none bg-transparent"
                     value={formData.author}
-                    onChange={(e) => setFormData({ ...formData, author: e.target.value })}
+                    onChange={handleChange('author')}
                     required
                   />
                 </div>
@@ -139,7 +131,7 @@ const RequestBook = () => {
                   <select
                     className="w-full pl-4 pr-10 py-3 border-b border-gray-200 focus:border-blue-600 focus:outline-none appearance-none bg-transparent"
                     value={formData.genre}
-                    onChange={(e) => setFormData({ ...formData, genre: e.target.value })}
+                    onChange={handleChange('genre')}
                     required
                   >
                     <option value="" disabled>Select Genre</option>
@@ -156,7 +148,7 @@ const RequestBook = () => {
                     rows="4"
                     className="w-full pl-10 pr-4 py-3 border-b border-gray-200 focus:border-blue-600 focus:outline-none bg-transparent"
                     value={formData.message}
-                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                    onChange={handleChange('message')}
                   />
                 </div>
 
