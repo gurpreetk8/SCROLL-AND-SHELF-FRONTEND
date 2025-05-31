@@ -1,19 +1,19 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { Book, ChevronRight } from 'lucide-react';
 import { toast } from 'react-toastify';
-import RequestBook from '../../pages/RequestBook';
+import { useNavigate } from 'react-router-dom';
 
 const RequestBookLanding = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const navigate = useNavigate();
 
-  const handleOpenModal = () => {
+  const handleContinue = () => {
     const token = localStorage.getItem('token');
     if (!token) {
       toast.error('Please log in to request a book');
       return;
     }
-    setIsModalOpen(true);
+    navigate('/request-book');
   };
 
   return (
@@ -24,7 +24,7 @@ const RequestBookLanding = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-6">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -44,7 +44,7 @@ const RequestBookLanding = () => {
           whileInView={{ opacity: 1, scale: 1 }}
           className="max-w-lg mx-auto bg-white border border-gray-100 rounded-2xl shadow-xl overflow-hidden"
         >
-          <div className="flex flex-col items-center justify-center bg-gradient-to-b from-blue-50 to-amber-50 p-16 text-center">
+          <div className="flex flex-col items-center justify-center bg-gradient-to-b from-blue-50 to-amber-50 p-10 sm:p-16 text-center">
             <div className="bg-white p-3 rounded-lg shadow-sm mb-4">
               <Book className="h-6 w-6 text-blue-600" />
             </div>
@@ -52,11 +52,11 @@ const RequestBookLanding = () => {
             <p className="text-gray-600 max-w-xs mb-8">
               Tell us what you're looking for and we'll try our best to add it.
             </p>
-            
+
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.98 }}
-              onClick={handleOpenModal}
+              onClick={handleContinue}
               className="flex items-center justify-center space-x-2 bg-gray-900 text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors"
             >
               <span>Continue to Request Form</span>
@@ -65,8 +65,6 @@ const RequestBookLanding = () => {
           </div>
         </motion.div>
       </div>
-
-      <RequestBook isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </section>
   );
 };
