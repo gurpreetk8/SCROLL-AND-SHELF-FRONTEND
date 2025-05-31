@@ -47,7 +47,8 @@ const RequestBookLanding = () => {
             {/* SIMPLIFIED BUTTON SOLUTION THAT WILL WORK */}
             <Link 
               to="/request-book" 
-              className="inline-block" // Important for proper sizing
+              className="inline-block"
+              onClick={() => console.log('Link clicked!')} // Important for proper sizing
             >
               <motion.div
                 whileHover={{ scale: 1.05 }}
