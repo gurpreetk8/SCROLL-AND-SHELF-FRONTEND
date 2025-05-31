@@ -121,7 +121,7 @@ const LoginRegister = () => {
             <div className="mb-8">
               <BookOpen className="h-16 w-16 text-gray-900 mx-auto mb-6" />
               <h1 className="text-4xl font-light text-gray-900 mb-4">
-                Scroll<span className="font-serif italic">&</span>Shelf
+                Scroll&Shelf
               </h1>
               <div className="mx-auto h-px w-24 bg-gray-300" />
             </div>
@@ -234,7 +234,7 @@ const LoginRegister = () => {
               </form>
 
               <p className="mt-6 text-gray-600 text-center">
-                {isLogin ? "New to Scroll & Shelf?" : "Already have an account?"}
+                {isLogin ? "New to Scroll&Shelf?" : "Already have an account?"}
                 <button
                   onClick={toggleForm}
                   className="ml-2 text-amber-600 hover:text-amber-700 font-medium"
