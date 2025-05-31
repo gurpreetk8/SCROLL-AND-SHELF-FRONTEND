@@ -7,7 +7,8 @@ import { useNavigate } from 'react-router-dom';
 const RequestBookLanding = () => {
   const navigate = useNavigate();
 
-  const handleContinue = () => {
+  const handleContinue = (e) => {
+    e.preventDefault(); // Prevent default behavior
     const token = localStorage.getItem('token');
     if (!token) {
       toast.error('Please log in to request a book');
