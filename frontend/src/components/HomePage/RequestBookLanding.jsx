@@ -6,12 +6,14 @@ import { Link } from 'react-router-dom';
 const RequestBookLanding = () => {
   return (
     <section className="relative py-24 bg-white overflow-hidden">
+      {/* Background elements remain unchanged */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute -top-32 -left-32 w-64 h-64 bg-blue-100 rounded-full blur-3xl opacity-30" />
         <div className="absolute -bottom-32 -right-32 w-64 h-64 bg-amber-100 rounded-full blur-3xl opacity-30" />
       </div>
 
       <div className="max-w-7xl mx-auto px-6">
+        {/* Header section remains unchanged */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -27,6 +29,7 @@ const RequestBookLanding = () => {
           <div className="mx-auto mt-4 h-px w-24 bg-gradient-to-r from-transparent via-gray-300 to-transparent" />
         </motion.div>
 
+        {/* Main card container */}
         <motion.div
           initial={{ opacity: 0, scale: 0.98 }}
           whileInView={{ opacity: 1, scale: 1 }}
@@ -41,21 +44,19 @@ const RequestBookLanding = () => {
               Tell us what you're looking for and we'll try our best to add it.
             </p>
 
-            <Link to="/request-book">
-              <motion.button
-                whileHover={{ 
-                  scale: 1.05,
-                  boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)"
-                }}
-                whileTap={{ 
-                  scale: 0.98,
-                  boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)"
-                }}
-                className="flex items-center justify-center space-x-2 bg-gray-900 text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-all"
+            {/* SIMPLIFIED BUTTON SOLUTION THAT WILL WORK */}
+            <Link 
+              to="/request-book" 
+              className="inline-block" // Important for proper sizing
+            >
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.98 }}
+                className="flex items-center justify-center space-x-2 bg-gray-900 text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-all cursor-pointer"
               >
                 <span>Continue to Request Form</span>
                 <ChevronRight className="h-5 w-5" />
-              </motion.button>
+              </motion.div>
             </Link>
           </div>
         </motion.div>
