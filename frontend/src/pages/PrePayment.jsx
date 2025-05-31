@@ -14,7 +14,7 @@ const PrePayment = () => {
     const [user, setUser] = useState(null);
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState('');
-    const [toastType, setToastType] = useState('info'); // 'info' or 'success'
+    const [toastType, setToastType] = useState('info'); // 'info', 'success', or 'warning'
     const amount = 199;
 
     useEffect(() => {
@@ -33,7 +33,10 @@ const PrePayment = () => {
             try {
                 const token = localStorage.getItem('token');
                 if (!token) {
-                    navigate('/login-register');
+                    setToastMessage("Please login to continue. Redirecting to login page...");
+                    setToastType('warning');
+                    setShowToast(true);
+                    setLoading(false);
                     return;
                 }
 
@@ -88,7 +91,13 @@ const PrePayment = () => {
     // Delayed redirect after toast shows
     useEffect(() => {
         if (showToast) {
-            const redirectPath = toastType === 'success' ? '/subscription-success' : '/';
+            let redirectPath = '/';
+            if (toastType === 'success') {
+                redirectPath = '/subscription-success';
+            } else if (toastType === 'warning') {
+                redirectPath = '/login-register';
+            }
+            
             const timer = setTimeout(() => navigate(redirectPath), 3000);
             return () => clearTimeout(timer);
         }
@@ -225,11 +234,14 @@ const PrePayment = () => {
                     className="fixed top-4 right-4 z-50"
                 >
                     <div className={`bg-white p-4 rounded-lg shadow-lg border ${
-                        toastType === 'success' ? 'border-green-200' : 'border-amber-200'
+                        toastType === 'success' ? 'border-green-200' : 
+                        toastType === 'warning' ? 'border-yellow-200' : 'border-amber-200'
                     } max-w-xs`}>
                         <div className="flex items-start">
                             {toastType === 'success' ? (
                                 <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 mr-2" />
+                            ) : toastType === 'warning' ? (
+                                <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5 mr-2" />
                             ) : (
                                 <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 mr-2" />
                             )}
@@ -238,9 +250,10 @@ const PrePayment = () => {
                                 <div className="w-full bg-gray-200 rounded-full h-1 mt-2">
                                     <div 
                                         className={`h-1 rounded-full ${
-                                            toastType === 'success' ? 'bg-green-500' : 'bg-amber-500'
+                                            toastType === 'success' ? 'bg-green-500' : 
+                                            toastType === 'warning' ? 'bg-yellow-500' : 'bg-amber-500'
                                         }`} 
-                                        style={{ animation: 'progressBar 5s linear forwards' }}
+                                        style={{ animation: 'progressBar 3s linear forwards' }}
                                     ></div>
                                 </div>
                             </div>
@@ -255,52 +268,54 @@ const PrePayment = () => {
                 </motion.div>
             )}
 
-            <div className="min-h-screen bg-white flex items-center justify-center py-12">
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="max-w-lg w-full p-8 bg-gradient-to-br from-amber-50 to-white rounded-2xl shadow-xl border border-amber-100"
-                >
-                    <div className="text-center mb-8">
-                        <h1 className="text-3xl font-light text-gray-900 mb-2">
-                            Confirm Your Subscription
-                        </h1>
-                        <div className="mx-auto h-px w-16 bg-gradient-to-r from-amber-400 to-amber-600" />
-                    </div>
-
-                    <div className="space-y-6 mb-8">
-                        <div className="flex justify-between items-center p-4 bg-white rounded-lg border border-amber-100">
-                            <span className="text-gray-600">Name:</span>
-                            <span className="font-medium text-gray-900">{user?.first_name} {user?.last_name}</span>
-                        </div>
-
-                        <div className="flex justify-between items-center p-4 bg-white rounded-lg border border-amber-100">
-                            <span className="text-gray-600">Email:</span>
-                            <span className="font-medium text-gray-900">{user?.email}</span>
-                        </div>
-
-                        <div className="flex justify-between items-center p-4 bg-white rounded-lg border border-amber-100">
-                            <span className="text-gray-600">Total Amount:</span>
-                            <span className="text-2xl font-light text-amber-600">₹{amount}</span>
-                        </div>
-                    </div>
-
-                    <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={handlePayment}
-                        disabled={loading}
-                        className="w-full flex items-center justify-center space-x-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white px-8 py-4 rounded-lg hover:from-amber-600 hover:to-amber-700 transition-all"
+            {!showToast && user && (
+                <div className="min-h-screen bg-white flex items-center justify-center py-12">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="max-w-lg w-full p-8 bg-gradient-to-br from-amber-50 to-white rounded-2xl shadow-xl border border-amber-100"
                     >
-                        <CheckCircle className="h-6 w-6" />
-                        <span className="text-lg font-medium">Proceed with Payment</span>
-                    </motion.button>
+                        <div className="text-center mb-8">
+                            <h1 className="text-3xl font-light text-gray-900 mb-2">
+                                Confirm Your Subscription
+                            </h1>
+                            <div className="mx-auto h-px w-16 bg-gradient-to-r from-amber-400 to-amber-600" />
+                        </div>
 
-                    <p className="mt-4 text-center text-sm text-gray-600">
-                        Secure payment processing by Razorpay
-                    </p>
-                </motion.div>
-            </div>
+                        <div className="space-y-6 mb-8">
+                            <div className="flex justify-between items-center p-4 bg-white rounded-lg border border-amber-100">
+                                <span className="text-gray-600">Name:</span>
+                                <span className="font-medium text-gray-900">{user?.first_name} {user?.last_name}</span>
+                            </div>
+
+                            <div className="flex justify-between items-center p-4 bg-white rounded-lg border border-amber-100">
+                                <span className="text-gray-600">Email:</span>
+                                <span className="font-medium text-gray-900">{user?.email}</span>
+                            </div>
+
+                            <div className="flex justify-between items-center p-4 bg-white rounded-lg border border-amber-100">
+                                <span className="text-gray-600">Total Amount:</span>
+                                <span className="text-2xl font-light text-amber-600">₹{amount}</span>
+                            </div>
+                        </div>
+
+                        <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={handlePayment}
+                            disabled={loading}
+                            className="w-full flex items-center justify-center space-x-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white px-8 py-4 rounded-lg hover:from-amber-600 hover:to-amber-700 transition-all"
+                        >
+                            <CheckCircle className="h-6 w-6" />
+                            <span className="text-lg font-medium">Proceed with Payment</span>
+                        </motion.button>
+
+                        <p className="mt-4 text-center text-sm text-gray-600">
+                            Secure payment processing by Razorpay
+                        </p>
+                    </motion.div>
+                </div>
+            )}
             <Footer />
 
             <style jsx>{`

@@ -7,10 +7,12 @@ import Footer from "../components/HomePage/Footer";
 const SubscriptionOverview = () => {
     const navigate = useNavigate();
     const features = [
-        "Unlimited access to 1M+ ebooks",
+        "Unlimited access to ebooks ",
         "Priority customer support",
+        "Request Books",
         "DRM-free downloads",
-        "Personalized recommendations"
+        "Personalized recommendations",
+        "Interact with other readers",
     ];
 
     return (
