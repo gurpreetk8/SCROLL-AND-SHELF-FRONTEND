@@ -1,22 +1,9 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Book, ChevronRight } from 'lucide-react';
-import { toast } from 'react-toastify';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 const RequestBookLanding = () => {
-  const navigate = useNavigate();
-
-  const handleContinue = (e) => {
-    e.preventDefault(); // Prevent default behavior
-    const token = localStorage.getItem('token');
-    if (!token) {
-      toast.error('Please log in to request a book');
-      return;
-    }
-    navigate('/request-book');
-  };
-
   return (
     <section className="relative py-24 bg-white overflow-hidden">
       <div className="absolute inset-0 opacity-10">
@@ -54,15 +41,22 @@ const RequestBookLanding = () => {
               Tell us what you're looking for and we'll try our best to add it.
             </p>
 
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={handleContinue}
-              className="flex items-center justify-center space-x-2 bg-gray-900 text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-all duration-200"
-            >
-              <span>Continue to Request Form</span>
-              <ChevronRight className="h-5 w-5" />
-            </motion.button>
+            <Link to="/request-book">
+              <motion.button
+                whileHover={{ 
+                  scale: 1.05,
+                  boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)"
+                }}
+                whileTap={{ 
+                  scale: 0.98,
+                  boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)"
+                }}
+                className="flex items-center justify-center space-x-2 bg-gray-900 text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-all"
+              >
+                <span>Continue to Request Form</span>
+                <ChevronRight className="h-5 w-5" />
+              </motion.button>
+            </Link>
           </div>
         </motion.div>
       </div>
