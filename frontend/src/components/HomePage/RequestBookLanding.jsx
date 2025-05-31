@@ -57,7 +57,7 @@ const RequestBookLanding = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.98 }}
               onClick={handleContinue}
-              className="flex items-center justify-center space-x-2 bg-gray-900 text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors"
+              className="flex items-center justify-center space-x-2 bg-gray-900 text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-all duration-200"
             >
               <span>Continue to Request Form</span>
               <ChevronRight className="h-5 w-5" />
