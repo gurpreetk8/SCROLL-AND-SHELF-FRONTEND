@@ -11,7 +11,7 @@ const SubscriptionSuccess = () => {
   const navigate = useNavigate();
   const { width, height } = useWindowSize();
   const [confettiPieces, setConfettiPieces] = useState(200);
-  const [emojis] = useState(['🎉', '📚', '🎊', '🌟', '✨', '🥳']);
+  const [emojis] = useState(['🎉', '📚', '🎊', '🌟', '✨', ]);
 
   useEffect(() => {
     const timeout = setTimeout(() => {

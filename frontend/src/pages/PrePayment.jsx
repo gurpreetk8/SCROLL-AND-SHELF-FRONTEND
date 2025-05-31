@@ -14,6 +14,7 @@ const PrePayment = () => {
     const [user, setUser] = useState(null);
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState('');
+    const [toastType, setToastType] = useState('info'); // 'info' or 'success'
     const amount = 199;
 
     useEffect(() => {
@@ -32,7 +33,7 @@ const PrePayment = () => {
             try {
                 const token = localStorage.getItem('token');
                 if (!token) {
-                    navigate('/login');
+                    navigate('/login-register');
                     return;
                 }
 
@@ -57,6 +58,7 @@ const PrePayment = () => {
                 if (!subscriptionResponse.data.success) {
                     if (subscriptionResponse.data.message === "Active subscription already exists") {
                         setToastMessage("You already have an active subscription. Redirecting to homepage...");
+                        setToastType('info');
                         setShowToast(true);
                         setLoading(false);
                         return;
@@ -86,10 +88,11 @@ const PrePayment = () => {
     // Delayed redirect after toast shows
     useEffect(() => {
         if (showToast) {
-            const timer = setTimeout(() => navigate('/'), 5000);
+            const redirectPath = toastType === 'success' ? '/subscription-success' : '/';
+            const timer = setTimeout(() => navigate(redirectPath), 3000);
             return () => clearTimeout(timer);
         }
-    }, [showToast, navigate]);
+    }, [showToast, navigate, toastType]);
 
     const handlePayment = async () => {
         try {
@@ -116,7 +119,7 @@ const PrePayment = () => {
                 key: 'rzp_test_ew74Ktx27rLLPC',
                 amount: orderResponse.data.amount,
                 currency: orderResponse.data.currency,
-                name: 'Scroll & Shelf',
+                name: 'Scroll&Shelf',
                 description: 'Premium Subscription',
                 order_id: orderResponse.data.order_id,
                 handler: async (response) => {
@@ -136,8 +139,9 @@ const PrePayment = () => {
                         );
 
                         if (verificationResponse.data.success) {
-                            alert('Payment successful! Redirecting to homepage...');
-                            setTimeout(() => navigate('/'), 3000);
+                            setToastMessage("Payment successful! Redirecting...");
+                            setToastType('success');
+                            setShowToast(true);
                         } else {
                             throw new Error(verificationResponse.data.message || 'Payment verification failed');
                         }
@@ -220,14 +224,22 @@ const PrePayment = () => {
                     transition={{ duration: 0.3 }}
                     className="fixed top-4 right-4 z-50"
                 >
-                    <div className="bg-white p-4 rounded-lg shadow-lg border border-amber-200 max-w-xs">
+                    <div className={`bg-white p-4 rounded-lg shadow-lg border ${
+                        toastType === 'success' ? 'border-green-200' : 'border-amber-200'
+                    } max-w-xs`}>
                         <div className="flex items-start">
-                            <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 mr-2" />
+                            {toastType === 'success' ? (
+                                <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 mr-2" />
+                            ) : (
+                                <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 mr-2" />
+                            )}
                             <div className="flex-1">
                                 <p className="text-sm font-medium text-gray-900">{toastMessage}</p>
                                 <div className="w-full bg-gray-200 rounded-full h-1 mt-2">
                                     <div 
-                                        className="bg-amber-500 h-1 rounded-full" 
+                                        className={`h-1 rounded-full ${
+                                            toastType === 'success' ? 'bg-green-500' : 'bg-amber-500'
+                                        }`} 
                                         style={{ animation: 'progressBar 5s linear forwards' }}
                                     ></div>
                                 </div>
