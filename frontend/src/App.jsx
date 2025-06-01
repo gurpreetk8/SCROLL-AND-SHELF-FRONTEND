@@ -5,7 +5,7 @@ import HomePage from './pages/HomePage';
 import RequestBook from './pages/RequestBook';
 import LoginRegister from './pages/LoginRegister';
 import Categories from './pages/Categories';
-
+import CommunityPage from './pages/CommunityPage';
 import UserDashboard from './pages/UserDashboard';
 import EbookDetail from './pages/EbookDetail';
 import Ebooks from './pages/Ebooks';
@@ -25,7 +25,7 @@ function App() {
         <Route path="/login-register" element={<LoginRegister />} />
         <Route path="/request-book" element={<RequestBook />} />
         <Route path="/Categories" element={<Categories />} />
-        
+        <Route path="/community" element={<CommunityPage />} />
         <Route path="/dashboard" element={<UserDashboard />} />
         <Route path="/ebook-detail" element={<EbookDetail />} />
         <Route path="/ebooks" element={<Ebooks />} />
