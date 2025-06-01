@@ -7,6 +7,8 @@ const CommunityPosts = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [commentInputs, setCommentInputs] = useState({});
+  const [commentStatus, setCommentStatus] = useState({});
 
   const token = localStorage.getItem('token');
 
@@ -72,6 +74,50 @@ const CommunityPosts = () => {
     }
   };
 
+  const handleCommentChange = (postId, value) => {
+    setCommentInputs((prev) => ({ ...prev, [postId]: value }));
+  };
+
+  const handleCommentSubmit = async (postId) => {
+    const content = commentInputs[postId];
+    if (!content) return;
+
+    try {
+      const response = await axios.post(
+        `https://scrollandshelf.pythonanywhere.com/community/create_comment/${postId}/`,
+        { content },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (response.data.success) {
+        setCommentStatus((prev) => ({ ...prev, [postId]: 'Comment posted!' }));
+        setCommentInputs((prev) => ({ ...prev, [postId]: '' }));
+
+        // Optionally update comment count visually
+        setPosts((prevPosts) =>
+          prevPosts.map((post) =>
+            post.id === postId
+              ? {
+                  ...post,
+                  comments: [...post.comments, response.data.comment],
+                }
+              : post
+          )
+        );
+      } else {
+        setCommentStatus((prev) => ({ ...prev, [postId]: 'Failed to post comment.' }));
+      }
+    } catch (err) {
+      console.error('Error submitting comment:', err);
+      setCommentStatus((prev) => ({ ...prev, [postId]: 'Error posting comment.' }));
+    }
+  };
+
   if (loading) {
     return <div className="text-center py-10 text-gray-500">Loading posts...</div>;
   }
@@ -85,7 +131,7 @@ const CommunityPosts = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header Text */}
         <h1 className="ml-2 text-3xl font-medium tracking-widest text-gray-600 mb-4">
-          🛋️ Reader's Lounge
+          💬 Reader's Lounge
         </h1>
 
         <div className="grid gap-6">
@@ -135,6 +181,26 @@ const CommunityPosts = () => {
                   <MessageSquare className="w-4 h-4" />
                   <span>{post.comments.length}</span>
                 </div>
+              </div>
+
+              {/* Comment Box */}
+              <div className="mt-4">
+                <input
+                  type="text"
+                  value={commentInputs[post.id] || ''}
+                  onChange={(e) => handleCommentChange(post.id, e.target.value)}
+                  placeholder="Write a comment..."
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                />
+                <button
+                  onClick={() => handleCommentSubmit(post.id)}
+                  className="mt-2 px-4 py-1 text-sm bg-amber-600 text-white rounded hover:bg-amber-700 transition"
+                >
+                  Post Comment
+                </button>
+                {commentStatus[post.id] && (
+                  <p className="text-xs mt-1 text-gray-500">{commentStatus[post.id]}</p>
+                )}
               </div>
             </motion.div>
           ))}
