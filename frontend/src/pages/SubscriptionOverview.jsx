@@ -7,7 +7,7 @@ import Footer from "../components/HomePage/Footer";
 const SubscriptionOverview = () => {
     const navigate = useNavigate();
     const features = [
-        "Unlimited access to ebooks ",
+        "Unlimited access to ebooks",
         "Priority customer support",
         "Request Books",
         "DRM-free downloads",
@@ -56,18 +56,19 @@ const SubscriptionOverview = () => {
                                 </p>
                             </div>
 
-                            <div className="grid md:grid-cols-2 gap-12 mb-16">
-                                <div className="space-y-2">
-                                    {features.slice(0, 2).map((feature, index) => (
+                            {/* Updated 2-column, 3-item each feature grid */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+                                <div className="space-y-6">
+                                    {features.slice(0, 3).map((feature, index) => (
                                         <div key={index} className="flex items-start space-x-3">
                                             <CheckCircle className="h-6 w-6 text-amber-600 flex-shrink-0 mt-1" />
                                             <p className="text-gray-900 font-light">{feature}</p>
                                         </div>
                                     ))}
                                 </div>
-                                <div className="space-y-2">
-                                    {features.slice(2).map((feature, index) => (
-                                        <div key={index} className="flex items-start space-x-3">
+                                <div className="space-y-6">
+                                    {features.slice(3, 6).map((feature, index) => (
+                                        <div key={index + 3} className="flex items-start space-x-3">
                                             <CheckCircle className="h-6 w-6 text-amber-600 flex-shrink-0 mt-1" />
                                             <p className="text-gray-900 font-light">{feature}</p>
                                         </div>
