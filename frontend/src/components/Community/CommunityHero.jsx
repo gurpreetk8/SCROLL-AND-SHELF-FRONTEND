@@ -1,41 +1,55 @@
-// components/Community/CommunityHero.jsx
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Users } from 'lucide-react';
+import { Users, Plus } from 'lucide-react';
+import CreatePost from './CreatePost'; // adjust path as needed
 
 const CommunityHero = () => {
+  const [showModal, setShowModal] = useState(false);
+
+  const handleOpenModal = () => setShowModal(true);
+  const handleCloseModal = () => setShowModal(false);
+
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-gradient-to-b from-[#50483b]/10 to-[#faf8f5] py-16 px-4 sm:px-6 lg:px-8"
+      className="bg-white"
     >
-      <div className="max-w-6xl mx-auto">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-8">
-          <div className="space-y-4">
-            <motion.h1 
-              initial={{ x: -20 }}
-              animate={{ x: 0 }}
-              className="text-4xl md:text-5xl font-bold text-[#50483b]"
-            >
-              JEE Community Hub
-            </motion.h1>
-            <p className="text-lg text-[#f97316] flex items-center gap-2">
-              <Users className="text-[#8ca87c]" size={24} />
-              Connect with 50,000+ JEE aspirants
-            </p>
-          </div>
-
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="bg-[#f97316] text-white px-8 py-4 rounded-xl flex items-center gap-2 
-              shadow-lg hover:bg-[#f97316]/90 transition-all duration-200"
-          >
-            <Plus size={24} />
-            Create New Post
-          </motion.button>
+      <div className="max-w-7xl mx-auto px-6 py-16 text-center">
+        <div className="h-16" />
+        <div className="inline-flex items-center justify-center mb-4">
+          <Users className="h-8 w-8 text-amber-600" />
+          <span className="ml-2 text-xl font-medium tracking-widest text-gray-600">
+            SCROLL&SHELF COMMUNITY
+          </span>
         </div>
+        <h1 className="text-4xl font-light text-gray-900">
+          Connect, Share & <span className="font-serif italic">Discuss</span>
+        </h1>
+        <div className="mx-auto mt-4 h-px w-24 bg-gray-300" />
+        <p className="mt-6 text-gray-600 max-w-2xl mx-auto">
+          Dive into discussions, swap reviews, and spark conversations with fellow book lovers.
+        </p>
+
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={handleOpenModal}
+          className="mt-10 inline-flex items-center gap-2 px-6 py-3 bg-amber-600 text-white text-sm font-medium rounded-full shadow-sm hover:bg-amber-700 transition"
+        >
+          <Plus size={18} />
+          Create New Post
+        </motion.button>
       </div>
+
+      {/* Modal with backdrop */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="relative">
+            <CreatePost onClose={handleCloseModal} />
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 };
