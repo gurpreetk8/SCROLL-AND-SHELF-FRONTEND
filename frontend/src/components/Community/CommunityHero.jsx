@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Users, Plus } from 'lucide-react';
+import { Users, Pen } from 'lucide-react';
 import CreatePost from './CreatePost'; // adjust path as needed
 
 const CommunityHero = () => {
@@ -28,7 +28,7 @@ const CommunityHero = () => {
         </h1>
         <div className="mx-auto mt-4 h-px w-24 bg-gray-300" />
         <p className="mt-6 text-gray-600 max-w-2xl mx-auto">
-          Dive into discussions, swap reviews, and spark conversations with fellow book lovers.
+          Explore what readers are talking about, and share your thoughts.
         </p>
 
         <motion.button
@@ -37,9 +37,10 @@ const CommunityHero = () => {
           onClick={handleOpenModal}
           className="mt-10 inline-flex items-center gap-2 px-6 py-3 bg-amber-600 text-white text-sm font-medium rounded-full shadow-sm hover:bg-amber-700 transition"
         >
-          <Plus size={18} />
-          Create New Post
+          <Pen size={18} />
+          Write a Post
         </motion.button>
+
       </div>
 
       {/* Modal with backdrop */}
