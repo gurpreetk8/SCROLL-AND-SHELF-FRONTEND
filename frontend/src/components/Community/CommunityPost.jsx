@@ -3,12 +3,78 @@ import axios from 'axios';
 import { MessageSquare, Heart } from 'lucide-react';
 import { motion } from 'framer-motion';
 
+// Post Details Modal Component
+const PostDetailsModal = ({ post, onClose }) => {
+  const [comments, setComments] = useState([]);
+
+  useEffect(() => {
+    const fetchComments = async () => {
+      try {
+        const res = await axios.get(
+          `https://scrollandshelf.pythonanywhere.com/community/posts/${post.id}/comments/`
+        );
+        setComments(res.data);
+      } catch (error) {
+        console.error('Error fetching comments:', error);
+      }
+    };
+
+    fetchComments();
+  }, [post.id]);
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-white w-full max-w-3xl rounded-2xl shadow-xl p-6 overflow-y-auto max-h-[90vh] relative">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-600 hover:text-black text-xl"
+        >
+          ✕
+        </button>
+
+        <h2 className="text-2xl font-bold mb-2">{post.title}</h2>
+        <p className="text-sm text-gray-500 mb-4">
+          Posted by <span className="font-medium">{post.user}</span> on{' '}
+          {new Date(post.created_at).toLocaleDateString()}
+        </p>
+
+        {post.image && (
+          <img
+            src={post.image}
+            alt="Post visual"
+            className="mb-4 w-full rounded-lg object-cover max-h-80"
+          />
+        )}
+
+        <p className="text-gray-700 mb-6">{post.content}</p>
+
+        <div className="border-t pt-4">
+          <h3 className="text-lg font-semibold mb-2">Comments</h3>
+          {comments.length === 0 ? (
+            <p className="text-gray-500">No comments yet.</p>
+          ) : (
+            <ul className="space-y-3">
+              {comments.map((comment) => (
+                <li key={comment.id} className="bg-gray-100 p-3 rounded-md">
+                  <p className="text-sm text-gray-600">{comment.content}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Main CommunityPosts Component
 const CommunityPosts = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [commentInputs, setCommentInputs] = useState({});
   const [commentStatus, setCommentStatus] = useState({});
+  const [selectedPost, setSelectedPost] = useState(null); // for modal
 
   const token = localStorage.getItem('token');
 
@@ -98,7 +164,6 @@ const CommunityPosts = () => {
         setCommentStatus((prev) => ({ ...prev, [postId]: 'Comment posted!' }));
         setCommentInputs((prev) => ({ ...prev, [postId]: '' }));
 
-        // Optionally update comment count visually
         setPosts((prevPosts) =>
           prevPosts.map((post) =>
             post.id === postId
@@ -129,7 +194,6 @@ const CommunityPosts = () => {
   return (
     <div className="bg-white py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        {/* Header Text */}
         <h1 className="ml-2 text-3xl font-medium tracking-widest text-gray-600 mb-4">
           💬 Reader's Lounge
         </h1>
@@ -141,18 +205,16 @@ const CommunityPosts = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.05 }}
-              className="bg-white p-6 rounded-2xl shadow hover:shadow-md transition"
+              className="bg-white p-6 rounded-2xl shadow hover:shadow-md transition cursor-pointer"
+              onClick={() => setSelectedPost(post)}
             >
-              {/* Post Header */}
               <div className="mb-2 text-sm text-gray-500">
                 Posted by <span className="font-medium text-gray-700">{post.user}</span> on{' '}
                 {new Date(post.created_at).toLocaleDateString()}
               </div>
 
-              {/* Post Title */}
               <h2 className="text-xl font-semibold text-gray-900">{post.title}</h2>
 
-              {/* Optional Image */}
               {post.image && (
                 <img
                   src={post.image}
@@ -161,13 +223,14 @@ const CommunityPosts = () => {
                 />
               )}
 
-              {/* Post Content */}
               <p className="text-gray-700 mt-2">{post.content}</p>
 
-              {/* Reactions */}
               <div className="mt-4 flex items-center gap-6 text-sm text-gray-500">
                 <button
-                  onClick={() => handleLikeToggle(post.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleLikeToggle(post.id);
+                  }}
                   className="flex items-center gap-1 focus:outline-none"
                 >
                   <Heart
@@ -183,17 +246,20 @@ const CommunityPosts = () => {
                 </div>
               </div>
 
-              {/* Comment Box */}
               <div className="mt-4">
                 <input
                   type="text"
                   value={commentInputs[post.id] || ''}
+                  onClick={(e) => e.stopPropagation()}
                   onChange={(e) => handleCommentChange(post.id, e.target.value)}
                   placeholder="Write a comment..."
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
                 />
                 <button
-                  onClick={() => handleCommentSubmit(post.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleCommentSubmit(post.id);
+                  }}
                   className="mt-2 px-4 py-1 text-sm bg-amber-600 text-white rounded hover:bg-amber-700 transition"
                 >
                   Post Comment
@@ -206,6 +272,11 @@ const CommunityPosts = () => {
           ))}
         </div>
       </div>
+
+      {/* Modal */}
+      {selectedPost && (
+        <PostDetailsModal post={selectedPost} onClose={() => setSelectedPost(null)} />
+      )}
     </div>
   );
 };
