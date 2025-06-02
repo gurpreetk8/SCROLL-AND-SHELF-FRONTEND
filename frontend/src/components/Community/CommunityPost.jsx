@@ -2,79 +2,16 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { MessageSquare, Heart } from 'lucide-react';
 import { motion } from 'framer-motion';
-
-// Post Details Component
-const PostDetails = ({ post, onClose }) => {
-  const [comments, setComments] = useState([]);
-
-  useEffect(() => {
-    const fetchComments = async () => {
-      try {
-        const res = await axios.get(
-          `https://scrollandshelf.pythonanywhere.com/community/posts/${post.id}/comments/`
-        );
-        setComments(res.data);
-      } catch (error) {
-        console.error('Error fetching comments:', error);
-      }
-    };
-
-    fetchComments();
-  }, [post.id]);
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white w-full max-w-3xl rounded-2xl shadow-xl p-6 overflow-y-auto max-h-[90vh] relative">
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-gray-600 hover:text-black text-xl"
-        >
-          ✕
-        </button>
-
-        <h2 className="text-2xl font-bold mb-2">{post.title}</h2>
-        <p className="text-sm text-gray-500 mb-4">
-          Posted by <span className="font-medium">{post.user}</span> on{' '}
-          {new Date(post.created_at).toLocaleDateString()}
-        </p>
-
-        {post.image && (
-          <img
-            src={post.image}
-            alt="Post visual"
-            className="mb-4 w-full rounded-lg object-cover max-h-80"
-          />
-        )}
-
-        <p className="text-gray-700 mb-6">{post.content}</p>
-
-        <div className="border-t pt-4">
-          <h3 className="text-lg font-semibold mb-2">Comments</h3>
-          {comments.length === 0 ? (
-            <p className="text-gray-500">No comments yet.</p>
-          ) : (
-            <ul className="space-y-3">
-              {comments.map((comment) => (
-                <li key={comment.id} className="bg-gray-100 p-3 rounded-md">
-                  <p className="text-sm text-gray-600">{comment.content}</p>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
+import { useNavigate } from 'react-router-dom';
 
 // Main CommunityPosts Component
-const CommunityPosts = () => {
+const CommunityPost = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [commentInputs, setCommentInputs] = useState({});
   const [commentStatus, setCommentStatus] = useState({});
-  const [selectedPost, setSelectedPost] = useState(null); // for modal
+  const navigate = useNavigate();
 
   const token = localStorage.getItem('token');
 
@@ -110,7 +47,8 @@ const CommunityPosts = () => {
     fetchPosts();
   }, [token]);
 
-  const handleLikeToggle = async (postId) => {
+  const handleLikeToggle = async (postId, e) => {
+    e.stopPropagation();
     try {
       const response = await axios.post(
         `https://scrollandshelf.pythonanywhere.com/community/toggle_like/${postId}/`,
@@ -140,11 +78,13 @@ const CommunityPosts = () => {
     }
   };
 
-  const handleCommentChange = (postId, value) => {
+  const handleCommentChange = (postId, value, e) => {
+    e.stopPropagation();
     setCommentInputs((prev) => ({ ...prev, [postId]: value }));
   };
 
-  const handleCommentSubmit = async (postId) => {
+  const handleCommentSubmit = async (postId, e) => {
+    e.stopPropagation();
     const content = commentInputs[postId];
     if (!content) return;
 
@@ -183,6 +123,10 @@ const CommunityPosts = () => {
     }
   };
 
+  const handlePostClick = (postId) => {
+    navigate(`/community/posts/${postId}`);
+  };
+
   if (loading) {
     return <div className="text-center py-10 text-gray-500">Loading posts...</div>;
   }
@@ -206,7 +150,7 @@ const CommunityPosts = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.05 }}
               className="bg-white p-6 rounded-2xl shadow hover:shadow-md transition cursor-pointer"
-              onClick={() => setSelectedPost(post)}
+              onClick={() => handlePostClick(post.id)}
             >
               <div className="mb-2 text-sm text-gray-500">
                 Posted by <span className="font-medium text-gray-700">{post.user}</span> on{' '}
@@ -227,10 +171,7 @@ const CommunityPosts = () => {
 
               <div className="mt-4 flex items-center gap-6 text-sm text-gray-500">
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleLikeToggle(post.id);
-                  }}
+                  onClick={(e) => handleLikeToggle(post.id, e)}
                   className="flex items-center gap-1 focus:outline-none"
                 >
                   <Heart
@@ -246,20 +187,16 @@ const CommunityPosts = () => {
                 </div>
               </div>
 
-              <div className="mt-4">
+              <div className="mt-4" onClick={(e) => e.stopPropagation()}>
                 <input
                   type="text"
                   value={commentInputs[post.id] || ''}
-                  onClick={(e) => e.stopPropagation()}
-                  onChange={(e) => handleCommentChange(post.id, e.target.value)}
+                  onChange={(e) => handleCommentChange(post.id, e.target.value, e)}
                   placeholder="Write a comment..."
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
                 />
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleCommentSubmit(post.id);
-                  }}
+                  onClick={(e) => handleCommentSubmit(post.id, e)}
                   className="mt-2 px-4 py-1 text-sm bg-amber-600 text-white rounded hover:bg-amber-700 transition"
                 >
                   Post Comment
@@ -272,13 +209,8 @@ const CommunityPosts = () => {
           ))}
         </div>
       </div>
-
-      {/* Modal */}
-      {selectedPost && (
-        <PostDetails post={selectedPost} onClose={() => setSelectedPost(null)} />
-      )}
     </div>
   );
 };
 
-export default CommunityPosts;
+export default CommunityPost;

@@ -8,7 +8,7 @@ import Categories from './pages/Categories';
 import UserDashboard from './pages/UserDashboard';
 
 import CommunityPage from './pages/CommunityPage';
-
+import PostDetails from './components/Community/PostDetails';
 
 import EbookDetail from './pages/EbookDetail';
 import Ebooks from './pages/Ebooks';
@@ -30,7 +30,7 @@ function App() {
         <Route path="/request-book" element={<RequestBook />} />
         <Route path="/Categories" element={<Categories />} />
         <Route path="/community" element={<CommunityPage />} />
-        
+        <Route path="/community/posts/:postId" element={<PostDetails />} />
 
         <Route path="/dashboard" element={<UserDashboard />} />
 
