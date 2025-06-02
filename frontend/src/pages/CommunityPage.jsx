@@ -1,23 +1,35 @@
 // pages/CommunityPage.js
-import react from 'react';
+
+import React, { useState } from 'react';
+import Navbar from '../components/HomePage/Navbar';
+import Footer from '../components/HomePage/Footer';
+
 import CommunityHero from '../components/Community/CommunityHero';
 import CommunityPost from '../components/Community/CommunityPost';
+import PostDetails from '../components/Community/PostDetails'; // Make sure this path is correct
 
-import Navbar from '../components/HomePage/Navbar';
+const CommunityPage = () => {
+  const [selectedPost, setSelectedPost] = useState(null); // For post detail modal
 
+  return (
+    <>
+      <Navbar />
 
-function CommunityPage() {
-    return (
-        <>
-        <Navbar />
+      <div className="pt-20"> {/* Padding from navbar */}
         <CommunityHero />
-        
-        <CommunityPost />
-        
-        </> 
-            
-     
-    
+
+        <CommunityPosts setSelectedPost={setSelectedPost} />
+
+        {selectedPost && (
+          <PostDetails
+            post={selectedPost}
+            onClose={() => setSelectedPost(null)}
+          />
+        )}
+      </div>
+
+      <Footer />
+    </>
   );
 };
 

@@ -3,8 +3,8 @@ import axios from 'axios';
 import { MessageSquare, Heart } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-// Post Details Modal Component
-const PostDetailsModal = ({ post, onClose }) => {
+// Post Details Component
+const PostDetails = ({ post, onClose }) => {
   const [comments, setComments] = useState([]);
 
   useEffect(() => {
@@ -275,7 +275,7 @@ const CommunityPosts = () => {
 
       {/* Modal */}
       {selectedPost && (
-        <PostDetailsModal post={selectedPost} onClose={() => setSelectedPost(null)} />
+        <PostDetails post={selectedPost} onClose={() => setSelectedPost(null)} />
       )}
     </div>
   );
