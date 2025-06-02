@@ -15,10 +15,10 @@ const CommunityPage = () => {
     <>
       <Navbar />
 
-      <div className="pt-20"> {/* Padding from navbar */}
+      <div className="pt-2"> {/* Padding from navbar */}
         <CommunityHero />
 
-        <CommunityPosts setSelectedPost={setSelectedPost} />
+        <CommunityPost setSelectedPost={setSelectedPost} />
 
         {selectedPost && (
           <PostDetails
