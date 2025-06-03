@@ -5,7 +5,6 @@ import { ArrowLeft, Heart, MessageSquare } from 'lucide-react';
 import Navbar from '../HomePage/Navbar';
 import Footer from '../HomePage/Footer';
 
-
 const PostDetails = () => {
   const { postId } = useParams();
   const navigate = useNavigate();
@@ -18,7 +17,6 @@ const PostDetails = () => {
   const [commentInput, setCommentInput] = useState('');
   const [commentStatus, setCommentStatus] = useState('');
 
-  // Fetch post details and comments
   useEffect(() => {
     const fetchPostAndComments = async () => {
       try {
@@ -28,7 +26,6 @@ const PostDetails = () => {
           return;
         }
 
-        // Get post details from community/posts/ endpoint
         const postResponse = await axios.get(
           `https://scrollandshelf.pythonanywhere.com/community/posts/`,
           {
@@ -47,7 +44,6 @@ const PostDetails = () => {
 
         setPost(selectedPost);
 
-        // Get comments for this post
         const commentsResponse = await axios.get(
           `https://scrollandshelf.pythonanywhere.com/community/posts/${postId}/comments/`,
           {
@@ -57,13 +53,12 @@ const PostDetails = () => {
           }
         );
 
-        // Ensure comments is always an array
-        const commentsData = Array.isArray(commentsResponse.data.comments) 
-          ? commentsResponse.data.comments 
+        const commentsData = Array.isArray(commentsResponse.data.comments)
+          ? commentsResponse.data.comments
           : Array.isArray(commentsResponse.data)
-            ? commentsResponse.data
-            : [];
-            
+          ? commentsResponse.data
+          : [];
+
         setComments(commentsData);
       } catch (err) {
         console.error(err);
@@ -115,7 +110,7 @@ const PostDetails = () => {
   return (
     <>
       <Navbar />
-      <div className="max-w-4xl mx-auto py-10 px-4">
+      <div className="max-w-4xl mx-auto py-10 px-4 mt-6 mb-12"> {/* Added mt-6 and mb-12 */}
         <button
           onClick={() => navigate(-1)}
           className="mb-6 flex items-center gap-2 text-gray-600 hover:text-black"
@@ -160,7 +155,6 @@ const PostDetails = () => {
 
           <p className="text-gray-700 mt-6">{post.content}</p>
 
-          {/* Comment Form */}
           <form onSubmit={handleCommentSubmit} className="mt-8">
             <div className="flex gap-2">
               <input
@@ -184,7 +178,6 @@ const PostDetails = () => {
             )}
           </form>
 
-          {/* Comments Section */}
           <div className="mt-10">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">
               Comments ({comments.length})
