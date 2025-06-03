@@ -4,15 +4,11 @@ import { MessageSquare, Heart } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 
-// Main CommunityPosts Component
 const CommunityPost = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [commentInputs, setCommentInputs] = useState({});
-  const [commentStatus, setCommentStatus] = useState({});
   const navigate = useNavigate();
-
   const token = localStorage.getItem('token');
 
   useEffect(() => {
@@ -32,8 +28,17 @@ const CommunityPost = () => {
             },
           }
         );
+        
         if (response.data.success) {
-          setPosts(response.data.posts);
+          // Map through posts and extract username from email if needed
+          const formattedPosts = response.data.posts.map(post => ({
+            ...post,
+            displayUser: post.user?.username || 
+                        post.user?.first_name || 
+                        post.user?.email?.split('@')[0] || 
+                        'User'
+          }));
+          setPosts(formattedPosts);
         } else {
           setError(response.data.message || 'Failed to load posts.');
         }
@@ -78,51 +83,6 @@ const CommunityPost = () => {
     }
   };
 
-  const handleCommentChange = (postId, value, e) => {
-    e.stopPropagation();
-    setCommentInputs((prev) => ({ ...prev, [postId]: value }));
-  };
-
-  const handleCommentSubmit = async (postId, e) => {
-    e.stopPropagation();
-    const content = commentInputs[postId];
-    if (!content) return;
-
-    try {
-      const response = await axios.post(
-        `https://scrollandshelf.pythonanywhere.com/community/create_comment/${postId}/`,
-        { content },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-
-      if (response.data.success) {
-        setCommentStatus((prev) => ({ ...prev, [postId]: 'Comment posted!' }));
-        setCommentInputs((prev) => ({ ...prev, [postId]: '' }));
-
-        setPosts((prevPosts) =>
-          prevPosts.map((post) =>
-            post.id === postId
-              ? {
-                  ...post,
-                  comments: [...post.comments, response.data.comment],
-                }
-              : post
-          )
-        );
-      } else {
-        setCommentStatus((prev) => ({ ...prev, [postId]: 'Failed to post comment.' }));
-      }
-    } catch (err) {
-      console.error('Error submitting comment:', err);
-      setCommentStatus((prev) => ({ ...prev, [postId]: 'Error posting comment.' }));
-    }
-  };
-
   const handlePostClick = (postId) => {
     navigate(`/community/posts/${postId}`);
   };
@@ -153,20 +113,25 @@ const CommunityPost = () => {
               onClick={() => handlePostClick(post.id)}
             >
               <div className="mb-2 text-sm text-gray-500">
-                Posted by <span className="font-medium text-gray-700">{post.user}</span> on{' '}
+                Posted by <span className="font-medium text-gray-700">{post.displayUser}</span> on{' '}
                 {new Date(post.created_at).toLocaleDateString()}
               </div>
 
               <h2 className="text-xl font-semibold text-gray-900">{post.title}</h2>
 
               {post.image && (
-                <img
-                  src={post.image}
-                  alt="Post visual"
-                  className="my-4 w-full rounded-lg max-h-80 object-cover"
-                />
+                <div className="my-4 overflow-hidden rounded-lg bg-gray-100 flex justify-center">
+                  <img
+                    src={post.image}
+                    alt="Post visual"
+                    className="max-h-[500px] w-auto object-contain"
+                    onError={(e) => {
+                      e.target.style.display = "none";
+                    }}
+                  />
+                </div>
               )}
-
+              
               <p className="text-gray-700 mt-2">{post.content}</p>
 
               <div className="mt-4 flex items-center gap-6 text-sm text-gray-500">
@@ -181,29 +146,16 @@ const CommunityPost = () => {
                   />
                   <span>{post.like_count}</span>
                 </button>
-                <div className="flex items-center gap-1">
+                <div 
+                  className="flex items-center gap-1 cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handlePostClick(post.id);
+                  }}
+                >
                   <MessageSquare className="w-4 h-4" />
                   <span>{post.comments.length}</span>
                 </div>
-              </div>
-
-              <div className="mt-4" onClick={(e) => e.stopPropagation()}>
-                <input
-                  type="text"
-                  value={commentInputs[post.id] || ''}
-                  onChange={(e) => handleCommentChange(post.id, e.target.value, e)}
-                  placeholder="Write a comment..."
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
-                />
-                <button
-                  onClick={(e) => handleCommentSubmit(post.id, e)}
-                  className="mt-2 px-4 py-1 text-sm bg-amber-600 text-white rounded hover:bg-amber-700 transition"
-                >
-                  Post Comment
-                </button>
-                {commentStatus[post.id] && (
-                  <p className="text-xs mt-1 text-gray-500">{commentStatus[post.id]}</p>
-                )}
               </div>
             </motion.div>
           ))}
