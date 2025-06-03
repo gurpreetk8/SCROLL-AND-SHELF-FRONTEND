@@ -37,6 +37,10 @@ const MyPosts = () => {
     navigate('/community');
   };
 
+  const handlePostClick = (postId) => {
+    navigate(`/community/posts/${postId}`);
+  };
+
   if (loading) {
     return <div className="text-center py-10 text-lg">Loading your posts...</div>;
   }
@@ -60,7 +64,8 @@ const MyPosts = () => {
           {posts.map((post) => (
             <div
               key={post.id}
-              className="bg-white shadow-md rounded-xl p-5 hover:shadow-lg transition"
+              onClick={() => handlePostClick(post.id)}
+              className="bg-white shadow-md rounded-xl p-5 hover:shadow-lg transition cursor-pointer"
             >
               <h2 className="text-xl font-bold text-gray-800 mb-2">{post.title}</h2>
               <p className="text-gray-600 text-sm mb-2">
