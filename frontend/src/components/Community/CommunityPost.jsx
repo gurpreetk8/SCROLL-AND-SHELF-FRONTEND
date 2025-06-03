@@ -129,10 +129,11 @@ const CommunityPost = () => {
             >
               <div className="mb-2 text-sm text-gray-500">
                 Posted by <span className="font-medium text-gray-700">
-                  {post.user?.username || post.user?.first_name || post.user?.email?.split('@')[0] || 'User'}
+                  {post.user?.username || 'User'}
                 </span> on{' '}
                 {new Date(post.created_at).toLocaleDateString()}
               </div>
+
 
               <h2 className="text-xl font-semibold text-gray-900">{post.title}</h2>
 
