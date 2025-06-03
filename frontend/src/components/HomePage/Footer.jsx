@@ -47,7 +47,7 @@ const Footer = () => {
           {/* Center: Links */}
           <div className="flex justify-center flex-wrap gap-x-6 text-[1.05rem] font-medium">
             {["About", "Genres", "Bestsellers", "Request"].map((label, idx) => {
-              const paths = ["/about", "/Categories", "/bestsellers", "//request-book"];
+              const paths = ["/about", "/Categories", "/bestsellers", "/request-book"];
               return (
                 <motion.div
                   key={label}
