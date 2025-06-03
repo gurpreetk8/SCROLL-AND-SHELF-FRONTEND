@@ -118,22 +118,7 @@ const TrendingBooks = () => {
           ))}
         </div>
 
-        {/* View All Button */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.4 }}
-          className="mt-16 text-center"
-        >
-          <button 
-            className="inline-flex items-center border border-gray-900 bg-white px-8 py-3 text-sm font-medium text-gray-900 hover:bg-gray-100 transition-colors"
-            onClick={() => navigate('/trending')}
-          >
-            View All Trending
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </button>
-        </motion.div>
+        
       </div>
     </section>
   );

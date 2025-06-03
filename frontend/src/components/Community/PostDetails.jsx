@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Heart, MessageSquare } from 'lucide-react';
-import Navbar from '../components/HomePage/Navbar';
-import Footer from '../components/HomePage/Footer';
+import Navbar from '../HomePage/Navbar';
+import Footer from '../HomePage/Footer';
+
 
 const PostDetails = () => {
   const { postId } = useParams();
