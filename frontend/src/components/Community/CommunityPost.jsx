@@ -115,8 +115,7 @@ const CommunityPost = () => {
           💬 Reader's Lounge
         </h1>
 
-        <div className="mb-6 text-gray-700 text-sm">Welcome, <span className="font-semibold">{username}</span>!</div>
-
+        
         <div className="grid gap-6">
           {posts.map((post) => (
             <motion.div
