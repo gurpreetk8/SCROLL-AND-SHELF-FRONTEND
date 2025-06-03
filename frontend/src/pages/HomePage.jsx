@@ -19,7 +19,7 @@ function HomePage() {
     <BookOfTheMonth/>
     <OurGenres />
     <TrendingBooks />
-    <BookStats />
+    
     <RequestBookLanding />
     <Footer /> 
     </>
