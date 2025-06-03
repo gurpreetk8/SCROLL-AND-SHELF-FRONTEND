@@ -8,16 +8,37 @@ const CommunityPost = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [username, setUsername] = useState('');
   const navigate = useNavigate();
   const token = localStorage.getItem('token');
 
   useEffect(() => {
+    const fetchUserDetails = async () => {
+      try {
+        const response = await axios.get(
+          'https://scrollandshelf.pythonanywhere.com/users/user_details/',
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        if (response.data.success) {
+          setUsername(response.data.user_details.username);
+        }
+      } catch (err) {
+        console.error('Failed to fetch user details');
+      }
+    };
+
     const fetchPosts = async () => {
       if (!token) {
         setError('You must be logged in to view posts.');
         setLoading(false);
         return;
       }
+
+      await fetchUserDetails();
 
       try {
         const response = await axios.get(
@@ -30,11 +51,7 @@ const CommunityPost = () => {
         );
         
         if (response.data.success) {
-          const formattedPosts = response.data.posts.map(post => ({
-            ...post,
-            displayUser: post.user?.username || post.user?.email?.split('@')[0] || 'User'
-          }));
-          setPosts(formattedPosts);
+          setPosts(response.data.posts);
         } else {
           setError(response.data.message || 'Failed to load posts.');
         }
@@ -98,6 +115,8 @@ const CommunityPost = () => {
           💬 Reader's Lounge
         </h1>
 
+        <div className="mb-6 text-gray-700 text-sm">Welcome, <span className="font-semibold">{username}</span>!</div>
+
         <div className="grid gap-6">
           {posts.map((post) => (
             <motion.div
@@ -110,7 +129,7 @@ const CommunityPost = () => {
             >
               <div className="mb-2 text-sm text-gray-500">
                 Posted by <span className="font-medium text-gray-700">
-                  {post.displayUser}
+                  {post.user?.username || post.user?.first_name || post.user?.email?.split('@')[0] || 'User'}
                 </span> on{' '}
                 {new Date(post.created_at).toLocaleDateString()}
               </div>
