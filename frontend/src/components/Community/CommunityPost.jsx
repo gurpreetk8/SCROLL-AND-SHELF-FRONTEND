@@ -30,15 +30,7 @@ const CommunityPost = () => {
         );
         
         if (response.data.success) {
-          // Map through posts and extract username from email if needed
-          const formattedPosts = response.data.posts.map(post => ({
-            ...post,
-            displayUser: post.user?.username || 
-                        post.user?.first_name || 
-                        post.user?.email?.split('@')[0] || 
-                        'User'
-          }));
-          setPosts(formattedPosts);
+          setPosts(response.data.posts);
         } else {
           setError(response.data.message || 'Failed to load posts.');
         }
@@ -113,7 +105,9 @@ const CommunityPost = () => {
               onClick={() => handlePostClick(post.id)}
             >
               <div className="mb-2 text-sm text-gray-500">
-                Posted by <span className="font-medium text-gray-700">{post.displayUser}</span> on{' '}
+                Posted by <span className="font-medium text-gray-700">
+                  {post.user?.username || post.user?.first_name || post.user?.email?.split('@')[0] || 'User'}
+                </span> on{' '}
                 {new Date(post.created_at).toLocaleDateString()}
               </div>
 

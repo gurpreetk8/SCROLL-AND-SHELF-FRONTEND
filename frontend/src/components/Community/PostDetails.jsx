@@ -15,7 +15,6 @@ const PostDetails = () => {
   const [commentInput, setCommentInput] = useState('');
   const [commentStatus, setCommentStatus] = useState('');
 
-  // Fetch post details and comments
   useEffect(() => {
     const fetchPostAndComments = async () => {
       try {
@@ -25,9 +24,9 @@ const PostDetails = () => {
           return;
         }
 
-        // Get post details from community/posts/ endpoint
+        // Get post details
         const postResponse = await axios.get(
-          `https://scrollandshelf.pythonanywhere.com/community/posts/`,
+          `https://scrollandshelf.pythonanywhere.com/community/posts/${postId}/`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -35,16 +34,7 @@ const PostDetails = () => {
           }
         );
 
-        const selectedPost = postResponse.data.posts.find((p) => p.id === parseInt(postId));
-        if (!selectedPost) {
-          setError('Post not found.');
-          setLoading(false);
-          return;
-        }
-
-        setPost(selectedPost);
-
-        // Get comments for this post
+        // Get comments
         const commentsResponse = await axios.get(
           `https://scrollandshelf.pythonanywhere.com/community/posts/${postId}/comments/`,
           {
@@ -54,14 +44,8 @@ const PostDetails = () => {
           }
         );
 
-        // Ensure comments is always an array
-        const commentsData = Array.isArray(commentsResponse.data.comments) 
-          ? commentsResponse.data.comments 
-          : Array.isArray(commentsResponse.data)
-            ? commentsResponse.data
-            : [];
-            
-        setComments(commentsData);
+        setPost(postResponse.data);
+        setComments(commentsResponse.data.comments || []);
       } catch (err) {
         console.error(err);
         setError('Failed to load post or comments.');
@@ -109,6 +93,10 @@ const PostDetails = () => {
     return <div className="text-center py-10 text-red-500">{error}</div>;
   }
 
+  if (!post) {
+    return <div className="text-center py-10 text-red-500">Post not found</div>;
+  }
+
   return (
     <div className="max-w-4xl mx-auto py-10 px-4">
       <button
@@ -124,7 +112,9 @@ const PostDetails = () => {
           <div>
             <h2 className="text-2xl font-bold text-gray-800">{post.title}</h2>
             <p className="text-sm text-gray-500 mt-1">
-              Posted by <span className="font-medium">{post.user}</span> on{' '}
+              Posted by <span className="font-medium">
+                {post.user?.username || post.user?.first_name || post.user?.email?.split('@')[0] || 'User'}
+              </span> on{' '}
               {new Date(post.created_at).toLocaleDateString()}
             </p>
           </div>
@@ -192,7 +182,7 @@ const PostDetails = () => {
                 <li key={comment.id} className="border border-gray-200 p-4 rounded-lg">
                   <div className="flex justify-between">
                     <span className="font-medium text-sm">
-                      {comment.user?.first_name || comment.user?.email || 'Anonymous'}
+                      {comment.user?.username || comment.user?.first_name || comment.user?.email?.split('@')[0] || 'User'}
                     </span>
                     <span className="text-xs text-gray-400">
                       {new Date(comment.created_at).toLocaleString()}
