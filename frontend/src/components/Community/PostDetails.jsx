@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Heart, MessageSquare } from 'lucide-react';
+import Navbar from '../components/HomePage/Navbar';
+import Footer from '../components/HomePage/Footer';
 
 const PostDetails = () => {
   const { postId } = useParams();
@@ -110,102 +112,106 @@ const PostDetails = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto py-10 px-4">
-      <button
-        onClick={() => navigate(-1)}
-        className="mb-6 flex items-center gap-2 text-gray-600 hover:text-black"
-      >
-        <ArrowLeft className="w-5 h-5" />
-        Back
-      </button>
+    <>
+      <Navbar />
+      <div className="max-w-4xl mx-auto py-10 px-4">
+        <button
+          onClick={() => navigate(-1)}
+          className="mb-6 flex items-center gap-2 text-gray-600 hover:text-black"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          Back
+        </button>
 
-      <div className="bg-white shadow-md rounded-xl p-6">
-        <div className="flex justify-between items-start">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-800">{post.title}</h2>
-            <p className="text-sm text-gray-500 mt-1">
-              Posted by <span className="font-medium">{post.user}</span> on{' '}
-              {new Date(post.created_at).toLocaleDateString()}
-            </p>
-          </div>
-          <div className="flex gap-4">
-            <div className="flex items-center gap-1 text-gray-500">
-              <Heart className="w-5 h-5" />
-              <span>{post.like_count}</span>
+        <div className="bg-white shadow-md rounded-xl p-6">
+          <div className="flex justify-between items-start">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-800">{post.title}</h2>
+              <p className="text-sm text-gray-500 mt-1">
+                Posted by <span className="font-medium">{post.user}</span> on{' '}
+                {new Date(post.created_at).toLocaleDateString()}
+              </p>
             </div>
-            <div className="flex items-center gap-1 text-gray-500">
-              <MessageSquare className="w-5 h-5" />
-              <span>{comments.length}</span>
+            <div className="flex gap-4">
+              <div className="flex items-center gap-1 text-gray-500">
+                <Heart className="w-5 h-5" />
+                <span>{post.like_count}</span>
+              </div>
+              <div className="flex items-center gap-1 text-gray-500">
+                <MessageSquare className="w-5 h-5" />
+                <span>{comments.length}</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        {post.image && (
-          <div className="mt-6 mb-6 overflow-hidden rounded-lg bg-gray-100 flex justify-center">
-            <img
-              src={post.image}
-              alt="Post"
-              className="max-h-[70vh] w-auto object-contain"
-              onError={(e) => {
-                e.target.style.display = "none";
-              }}
-            />
-          </div>
-        )}
-
-        <p className="text-gray-700 mt-6">{post.content}</p>
-
-        {/* Comment Form */}
-        <form onSubmit={handleCommentSubmit} className="mt-8">
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={commentInput}
-              onChange={(e) => setCommentInput(e.target.value)}
-              placeholder="Write a comment..."
-              className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400"
-            />
-            <button
-              type="submit"
-              className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition"
-            >
-              Post
-            </button>
-          </div>
-          {commentStatus && (
-            <p className={`text-sm mt-2 ${commentStatus.includes('Failed') ? 'text-red-600' : 'text-green-600'}`}>
-              {commentStatus}
-            </p>
+          {post.image && (
+            <div className="mt-6 mb-6 overflow-hidden rounded-lg bg-gray-100 flex justify-center">
+              <img
+                src={post.image}
+                alt="Post"
+                className="max-h-[70vh] w-auto object-contain"
+                onError={(e) => {
+                  e.target.style.display = "none";
+                }}
+              />
+            </div>
           )}
-        </form>
 
-        {/* Comments Section */}
-        <div className="mt-10">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">
-            Comments ({comments.length})
-          </h3>
-          {comments.length === 0 ? (
-            <p className="text-sm text-gray-500">No comments yet. Be the first to comment!</p>
-          ) : (
-            <ul className="space-y-4">
-              {comments.map((comment) => (
-                <li key={comment.id} className="border border-gray-200 p-4 rounded-lg">
-                  <div className="flex justify-between">
-                    <span className="font-medium text-sm">
-                      {comment.user?.first_name || comment.user?.email || 'Anonymous'}
-                    </span>
-                    <span className="text-xs text-gray-400">
-                      {new Date(comment.created_at).toLocaleString()}
-                    </span>
-                  </div>
-                  <p className="text-gray-700 mt-1">{comment.content}</p>
-                </li>
-              ))}
-            </ul>
-          )}
+          <p className="text-gray-700 mt-6">{post.content}</p>
+
+          {/* Comment Form */}
+          <form onSubmit={handleCommentSubmit} className="mt-8">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={commentInput}
+                onChange={(e) => setCommentInput(e.target.value)}
+                placeholder="Write a comment..."
+                className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400"
+              />
+              <button
+                type="submit"
+                className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition"
+              >
+                Post
+              </button>
+            </div>
+            {commentStatus && (
+              <p className={`text-sm mt-2 ${commentStatus.includes('Failed') ? 'text-red-600' : 'text-green-600'}`}>
+                {commentStatus}
+              </p>
+            )}
+          </form>
+
+          {/* Comments Section */}
+          <div className="mt-10">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+              Comments ({comments.length})
+            </h3>
+            {comments.length === 0 ? (
+              <p className="text-sm text-gray-500">No comments yet. Be the first to comment!</p>
+            ) : (
+              <ul className="space-y-4">
+                {comments.map((comment) => (
+                  <li key={comment.id} className="border border-gray-200 p-4 rounded-lg">
+                    <div className="flex justify-between">
+                      <span className="font-medium text-sm">
+                        {comment.user?.first_name || comment.user?.email || 'Anonymous'}
+                      </span>
+                      <span className="text-xs text-gray-400">
+                        {new Date(comment.created_at).toLocaleString()}
+                      </span>
+                    </div>
+                    <p className="text-gray-700 mt-1">{comment.content}</p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+      <Footer />
+    </>
   );
 };
 
