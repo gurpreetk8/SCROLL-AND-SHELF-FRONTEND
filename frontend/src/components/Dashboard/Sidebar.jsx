@@ -6,7 +6,7 @@ export default function Sidebar({ activeSection, setActiveSection }) {
     { name: "Wishlist", key: "wishlist" },
     { name: "Subscriptions", key: "subscriptions" },
     { name: "Community", key: "community" },
-    { name: "Settings", key: "settings" },
+    
   ];
 
   return (
